@@ -1,7 +1,6 @@
-const authRepository = require("./auth.repository");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
+import authRepository from "./auth.repository";
+import bcrypt from "bcrypt";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface UserPayload {
   user_id: string;
@@ -16,6 +15,9 @@ const generateTokens = (user: UserPayload) => {
     role: user.role,
   };
 
+  if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+    throw new Error("Missing JWT secret(s) in environment variables");
+  }
   const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
@@ -29,15 +31,10 @@ const generateTokens = (user: UserPayload) => {
   return { refreshToken, accessToken };
 };
 
-
-
-
-
-
-const register = async (email: String, password: String) => {
+const register = async (email: string, password: string) => {
   const existingUser = await authRepository.findUserByEmail(email);
 
-  if (existingUser) throw new Error("Email sudah digunakan");
+  if (existingUser) throw new Error("Email already used");
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -46,28 +43,62 @@ const register = async (email: String, password: String) => {
     password: hashedPassword,
   });
 
+  const { refreshToken, accessToken } = generateTokens(user);
+
   return {
-    id: user.user_id,
-    email: user.email,
-    role: user.role,
+    user: {
+      id: user.user_id,
+      email: user.email,
+      role: user.role,
+    },
+    accessToken,
+    refreshToken,
   };
 };
 
-const login = async (email: String, password: String) => {
+const login = async (email: string, password: string) => {
   const user = await authRepository.findUserByEmail(email);
 
-  if (!user) throw new Error("Email tidak ditemukan");
+  if (!user) throw new Error("Email not found");
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) throw new Error("Email atau password salah");
+  if (!isPasswordValid) throw new Error("Email or password incorrect");
+
+  const { accessToken, refreshToken } = generateTokens(user);
 
   return {
-    id: user.user_id,
-    email: user.email,
+    user: {
+      id: user.user_id,
+      email: user.email,
+    },
+    accessToken,
+    refreshToken,
   };
 };
 
-module.exports = {
+const refreshAccessToken = async (refreshToken: string) => {
+  if (!refreshToken) throw new Error("No refresh token provided");
+
+  if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+    throw new Error("Missing JWT secret(s) in environment variables");
+  }
+
+  const decoded = jwt.verify(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  ) as JwtPayload;
+
+  const accessToken = jwt.sign(
+    { id: decoded.id },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  return accessToken;
+};
+
+export default {
   register,
   login,
+  refreshAccessToken,
 };

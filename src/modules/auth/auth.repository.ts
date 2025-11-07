@@ -1,6 +1,6 @@
-const prisma = require("../../config/prisma");
+import prisma from "../../config/prisma"
 
-const findUserByEmail = async (email: String) => {
+ const findUserByEmail = async (email: string) => {
   return await prisma.user.findUnique({
     where: {
       email,
@@ -8,13 +8,12 @@ const findUserByEmail = async (email: String) => {
   });
 };
 
-const createUser = async (data: any) => {
+ const createUser = async (data: any) => {
   return await prisma.user.create({ data });
 };
 
 
-
-module.exports = {
-    findUserByEmail,
-    createUser,
+export default {
+  findUserByEmail,
+  createUser
 }

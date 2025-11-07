@@ -5,11 +5,206 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  user_id    String   @id @default(uuid())
+  email      String    @unique
+  password   String 
+  role       Role      @default(user)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  profile        Profile?
+  favorites      Favorite[]
+  jawabanUsers   JawabanUser[]
+  hasil          Hasil[]
+  riwayatQuiz    RiwayatQuiz[]
+}
+
+model Profile {
+  profile_id    String   @id @default(uuid())
+  nama          String
+  jenis_kelamin String
+  tanggal_lahir DateTime
+  user_id       String      @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Mentor {
+  mentor_id    String   @id @default(uuid())
+  nama_mentor  String
+  pendidikan   String
+  keahlian     String
+  foto_mentor  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  favorites    Favorite[]
+}
+
+model Favorite {
+  favorite_id String   @id @default(uuid())
+  user_id     String
+  mentor_id   String
+  createdAt   DateTime @default(now())
+
+  user       User    @relation(fields: [user_id], references: [user_id])
+  mentor     Mentor  @relation(fields: [mentor_id], references: [mentor_id])
+}
+
+model Quiz {
+  quiz_id      String   @id @default(uuid())
+  nama_quiz    String
+  deskripsi_quiz String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  pertanyaan   Pertanyaan[]
+  riwayatQuiz  RiwayatQuiz[]
+  hasil       Hasil[]
+}
+
+model Pertanyaan {
+  pertanyaan_id String   @id @default(uuid())
+  quiz_id       String
+  soal          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  quiz          Quiz     @relation(fields: [quiz_id], references: [quiz_id])
+  jawaban       Jawaban[]
+  jawabanUsers  JawabanUser[]
+}
+
+model Jawaban {
+  jawaban_id    String   @id @default(uuid())
+  pertanyaan_id String
+  pilihan_jawaban String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  pertanyaan    Pertanyaan @relation(fields: [pertanyaan_id], references: [pertanyaan_id])
+  jawabanUsers  JawabanUser[]
+}
+
+model JawabanUser {
+  jwbuser_id    String   @id @default(uuid())
+  user_id       String
+  pertanyaan_id String
+  jawaban_id    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User      @relation(fields: [user_id], references: [user_id])
+  pertanyaan    Pertanyaan @relation(fields: [pertanyaan_id], references: [pertanyaan_id])
+  jawaban       Jawaban   @relation(fields: [jawaban_id], references: [jawaban_id])
+}
+
+model Hasil {
+  hasil_id      String   @id @default(uuid())
+  user_id       String
+  quiz_id       String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User       @relation(fields: [user_id], references: [user_id])
+  quiz          Quiz       @relation(fields: [quiz_id], references: [quiz_id])
+  hasilBidang   HasilBidang[]
+  hasilJurusan  HasilJurusan[]
+  hasilKampus   HasilKampus[]
+  riwayatQuiz   RiwayatQuiz[]
+}
+
+model Bidang {
+  bidang_id    String   @id @default(uuid())
+  nama_bidang  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  hasilBidang  HasilBidang[]
+}
+
+model HasilBidang {
+  hasilbidang_id String   @id @default(uuid())
+  hasil_id       String
+  bidang_id      String
+  skor_bidang    Int
+
+  hasil          Hasil   @relation(fields: [hasil_id], references: [hasil_id])
+  bidang         Bidang  @relation(fields: [bidang_id], references: [bidang_id])
+}
+
+model Jurusan {
+  jurusan_id   String   @id @default(uuid())
+  nama_jurusan String
+  deskripsi    String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  hasilJurusan HasilJurusan[]
+  kampus       Kampus[]
+}
+
+model HasilJurusan {
+  hasiljurusan_id String   @id @default(uuid())
+  hasil_id        String
+  jurusan_id      String
+
+  hasil           Hasil    @relation(fields: [hasil_id], references: [hasil_id])
+  jurusan         Jurusan  @relation(fields: [jurusan_id], references: [jurusan_id])
+}
+
+model Kampus {
+  kampus_id      String   @id @default(uuid())
+  jurusan_id     String
+  jenis_kampus   String
+  nama_kampus    String
+  deskripsi_kampus String?
+  foto_kampus    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  jurusan        Jurusan    @relation(fields: [jurusan_id], references: [jurusan_id])
+  hasilKampus    HasilKampus[]
+}
+
+model HasilKampus {
+  hasilkampus_id String   @id @default(uuid())
+  hasil_id       String
+  kampus_id      String
+
+  hasil          Hasil   @relation(fields: [hasil_id], references: [hasil_id])
+  kampus         Kampus  @relation(fields: [kampus_id], references: [kampus_id])
+}
+
+model RiwayatQuiz {
+  riwayat_id    String   @id @default(uuid())
+  quiz_id       String
+  hasil_id      String
+  user_id       String
+  tanggal_quiz  DateTime
+  status_quiz   String
+  skor          Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  quiz          Quiz     @relation(fields: [quiz_id], references: [quiz_id])
+  hasil         Hasil    @relation(fields: [hasil_id], references: [hasil_id])
+  user          User     @relation(fields: [user_id], references: [user_id])
 }
