@@ -97,11 +97,19 @@ const refreshAccessToken = async (refreshToken: string) => {
   return accessToken;
 };
 
-
 const logout = (user_id: string) => {
   return {
     message: "Logout successfull"
   }
+}
+
+const getProfile = async (user_id : string) => {
+  const user = await authRepository.findUserById(user_id)
+
+  if (!user) throw new Error ("User not found")
+
+  const { password, ...safeUser} = user;
+  return safeUser;
 }
 
 export default {
@@ -109,4 +117,5 @@ export default {
   login,
   refreshAccessToken,
   logout,
+  getProfile
 };
