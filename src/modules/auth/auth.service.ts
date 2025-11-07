@@ -97,8 +97,16 @@ const refreshAccessToken = async (refreshToken: string) => {
   return accessToken;
 };
 
+
+const logout = (user_id: string) => {
+  return {
+    message: "Logout successfull"
+  }
+}
+
 export default {
   register,
   login,
   refreshAccessToken,
+  logout,
 };

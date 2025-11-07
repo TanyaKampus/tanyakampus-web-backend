@@ -1,7 +1,11 @@
-import authService from "./auth.service"
+import authService from "./auth.service";
 import type { Request, Response } from "express";
 
-const setCookies = async (res: Response, accessToken: string, refreshToken: string ) => {
+const setCookies = async (
+  res: Response,
+  accessToken: string,
+  refreshToken: string
+) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -22,9 +26,12 @@ const register = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const {user, accessToken, refreshToken} = await authService.register(email, password);
+    const { user, accessToken, refreshToken } = await authService.register(
+      email,
+      password
+    );
 
-    setCookies(res, accessToken, refreshToken)
+    setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
       status: "success",
@@ -48,7 +55,7 @@ const login = async (req: Request, res: Response) => {
       password
     );
 
-    setCookies(res, accessToken, refreshToken)
+    setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
       status: "success",
@@ -63,7 +70,29 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
+const logout = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    await authService.logout(refreshToken);
+
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    res.json({
+      status: "success",
+      message: "Logged Out successfully",
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      status: error,
+      message: error.message,
+    });
+  }
+};
+
 export default {
   register,
   login,
+  logout,
 };

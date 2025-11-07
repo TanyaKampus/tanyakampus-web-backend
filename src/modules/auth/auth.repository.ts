@@ -8,9 +8,13 @@ import prisma from "../../config/prisma"
   });
 };
 
- const createUser = async (data: any) => {
+const createUser = async (data: any) => {
   return await prisma.user.create({ data });
 };
+
+
+
+
 
 
 export default {
