@@ -70,6 +70,30 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
+const refreshAccessToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    const accessToken = await authService.refreshAccessToken(refreshToken);
+
+    res.cookie("accesToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+    
+    res.json({
+      message: "Token refreshed successfully"
+    })
+  } catch (error:any) {
+
+    res.status(400).json({
+      message: error.message
+    })
+
+  }
+};
+
 const logout = async (req: Request, res: Response) => {
   try {
     const refreshToken = req.cookies.refreshToken;
