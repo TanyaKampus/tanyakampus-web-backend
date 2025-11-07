@@ -15,15 +15,15 @@ datasource db {
 
 
 enum Role {
-  admin
-  user
+  ADMIN
+  USER
 }
 
 model User {
   user_id    String   @id @default(uuid())
   email      String    @unique
   password   String 
-  role       Role      @default(user)
+  role       Role      @default(USER)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 

@@ -1,5 +1,5 @@
 import authService from "./auth.service";
-import type { Request, Response } from "express";
+import { Request, Response } from "express";
 
 const setCookies = async (
   res: Response,
