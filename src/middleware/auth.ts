@@ -28,11 +28,11 @@ const protectRoute = async (
       process.env.ACCESS_TOKEN_SECRET
     ) as JwtPayload;
 
-    if (!decoded.user_id) {
+    if (!decoded.id) {
       return res.status(401).json({ message: "Invalid token payload" });
     }
 
-    const user = await authRepository.findUserById(decoded.user_id);
+    const user = await authRepository.findUserById(decoded.id);
 
     if (!user) {
       return res.status(401).json({
