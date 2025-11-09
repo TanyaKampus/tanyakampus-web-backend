@@ -36,10 +36,10 @@ model User {
 
 model Profile {
   profile_id    String   @id @default(uuid())
-  nama          String
-  jenis_kelamin String
-  tanggal_lahir DateTime
-  user_id       String      @unique
+  nama          String?
+  jenis_kelamin String?
+  tanggal_lahir DateTime?
+  user_id       String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
