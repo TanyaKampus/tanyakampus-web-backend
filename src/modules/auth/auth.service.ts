@@ -16,7 +16,7 @@ const generateTokens = (user: UserPayload) => {
   };
 
   if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
-    throw new Error("Missing JWT secret(s) in environment variables");
+    throw new Error("Missing JWT secret in environment variables");
   }
   const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
@@ -41,6 +41,13 @@ const register = async (email: string, password: string) => {
   const user = await authRepository.createUser({
     email,
     password: hashedPassword,
+    profile: {
+      create: {
+        nama: "",
+        jenis_kelamin: "",
+        tanggal_lahir: null,
+      },
+    },
   });
 
   const { refreshToken, accessToken } = generateTokens(user);
@@ -99,23 +106,41 @@ const refreshAccessToken = async (refreshToken: string) => {
 
 const logout = (user_id: string) => {
   return {
-    message: "Logout successfull"
-  }
-}
+    message: "Logout successfull",
+  };
+};
 
-const getProfile = async (user_id : string) => {
-  const user = await authRepository.findUserById(user_id)
+const getProfile = async (user_id: string) => {
+  const user = await authRepository.findUserById(user_id);
 
-  if (!user) throw new Error ("User not found")
+  if (!user) throw new Error("User not found");
 
-  const { password, ...safeUser} = user;
+  const { password, ...safeUser } = user;
   return safeUser;
-}
+};
+
+const updateProfile = async (
+  user_id: string,
+  data: {
+    nama: string;
+    jenis_kelamin: string;
+    tanggal_lahir: Date;
+  }
+) => {
+  const existingProfile = await authRepository.findProfileById(user_id);
+
+  if (!existingProfile) throw new Error("Profile not found");
+
+  const updatedProfile = await authRepository.updateProfile(user_id, data);
+
+  return updatedProfile;
+};
 
 export default {
   register,
   login,
   refreshAccessToken,
   logout,
-  getProfile
+  getProfile,
+  updateProfile,
 };
