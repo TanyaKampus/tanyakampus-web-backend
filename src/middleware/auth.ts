@@ -69,6 +69,7 @@ const adminRoute = (req: AuthenticatedRequest, res:Response, next:NextFunction) 
     }
 }
 
+
 export default {
     protectRoute,
     adminRoute
