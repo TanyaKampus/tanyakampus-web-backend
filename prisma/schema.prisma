@@ -22,7 +22,7 @@ enum Role {
 model User {
   user_id    String   @id @default(uuid())
   email      String    @unique
-  password   String 
+  password   String? 
   role       Role      @default(USER)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -34,11 +34,20 @@ model User {
   riwayatQuiz    RiwayatQuiz[]
 }
 
+model TempUser {
+   tempUser_id    String   @id @default(uuid())
+   email          String   @unique
+   createdAt      DateTime @default(now())
+   expiresAt      DateTime @default(now())
+}
+
 model Profile {
   profile_id    String   @id @default(uuid())
-  nama          String?
+  nama          String
   jenis_kelamin String?
   tanggal_lahir DateTime?
+  no_telepon    String
+  asal_sekolah  String
   user_id       String   @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
