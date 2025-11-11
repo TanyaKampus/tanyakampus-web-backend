@@ -34,7 +34,6 @@ const googleLogin = (req: Request, res: Response) => {
 
 const googleCallback = async (req: Request, res: Response) => {
   try {
-   
     const { code } = req.query;
 
     if (!code)
@@ -64,23 +63,48 @@ const googleCallback = async (req: Request, res: Response) => {
 
 const register = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    const { user, accessToken, refreshToken } = await authService.register(
-      email,
-      password
-    );
+    const tempUser = await authService.register(email);
+
+    res.status(200).json(tempUser);
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+};
+
+const registerDetails = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new Error("JWT must be provided");
+
+    const token = authHeader.split(" ")[1];
+    const { password, nama, asal_sekolah, jenis_kelamin, no_telepon } =
+      req.body;
+
+    if (!token) throw new Error("Invalid token");
+
+    const result = await authService.registerDetails(token, {
+      password,
+      nama,
+      no_telepon,
+      asal_sekolah,
+      jenis_kelamin,
+    });
+
+    const { accessToken, refreshToken } = result;
 
     setCookies(res, accessToken, refreshToken);
 
-    res.status(200).json({
+    res.status(201).json({
       status: "success",
       message: "User created successfully",
-      user,
+      result,
     });
   } catch (error: any) {
     res.status(400).json({
-      status: "error",
       message: error.message,
     });
   }
@@ -204,6 +228,7 @@ const updateProfile = async (req: Request, res: Response) => {
 
 export default {
   register,
+  registerDetails,
   login,
   refreshAccessToken,
   logout,

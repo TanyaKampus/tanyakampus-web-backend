@@ -1,7 +1,31 @@
-import prisma from "../../config/prisma"
+import prisma from "../../config/prisma";
 
- const findUserByEmail = async (email: string) => {
+const findUserByEmail = async (email: string) => {
   return await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+};
+
+const findTempUserByEmail = async (email: string) => {
+  return await prisma.tempUser.findUnique({
+    where: {
+      email
+    }
+  })
+}
+
+const createTempUser = async (email: string) => {
+  return await prisma.tempUser.create({
+    data: {
+      email,
+    },
+  });
+};
+
+const deleteTempUser = async (email: string) => {
+  return await prisma.tempUser.delete({
     where: {
       email,
     },
@@ -23,28 +47,27 @@ const findUserById = async (user_id: string) => {
       profile: true, // ambil data profil juga
     },
   });
-}
+};
 
-const findProfileById = async ( user_id: string ) => {
+const findProfileById = async (user_id: string) => {
   return await prisma.profile.findUnique({
-    where:{
+    where: {
       user_id,
-    }
-  })
-}
+    },
+  });
+};
 
-const updateProfile = async (user_id: string, data:{nama: string, jenis_kelamin: string, tanggal_lahir: Date }) => {
+const updateProfile = async (
+  user_id: string,
+  data: { nama: string; jenis_kelamin: string; tanggal_lahir: Date }
+) => {
   return await prisma.profile.update({
     where: {
-      user_id
+      user_id,
     },
-    data
-  })
-}
- 
-
-
-
+    data,
+  });
+};
 
 export default {
   findUserByEmail,
@@ -52,4 +75,7 @@ export default {
   findUserById,
   findProfileById,
   updateProfile,
-}
+  findTempUserByEmail,
+  createTempUser,
+  deleteTempUser
+};
