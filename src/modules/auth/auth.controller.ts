@@ -1,3 +1,4 @@
+import { oauth2Client, scopes } from "../../config/google";
 import authService from "./auth.service";
 import { Request, Response } from "express";
 
@@ -20,6 +21,45 @@ const setCookies = async (
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
+};
+
+const googleLogin = (req: Request, res: Response) => {
+  const authorizationUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: scopes,
+    include_granted_scopes: true,
+  });
+  res.redirect(authorizationUrl);
+};
+
+const googleCallback = async (req: Request, res: Response) => {
+  try {
+   
+    const { code } = req.query;
+
+    if (!code)
+      return res.status(400).json({
+        message: "Missing authorization code",
+      });
+
+    const { user, accessToken, refreshToken } =
+      await authService.loginWithGoogle(code as string);
+
+    setCookies(res, accessToken, refreshToken);
+
+    // res.redirect(`http://localhost:5173/`); redirect to frontend
+
+    res.json({
+      status: "success",
+      message: "Logged in with google",
+      data: user,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to login with google,",
+      error: error.message,
+    });
+  }
 };
 
 const register = async (req: Request, res: Response) => {
@@ -141,7 +181,6 @@ const updateProfile = async (req: Request, res: Response) => {
     }
 
     const { nama, jenis_kelamin, tanggal_lahir } = req.body;
-   
 
     const updatedProfile = await authService.updateProfile(user_id, {
       nama,
@@ -151,7 +190,7 @@ const updateProfile = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       status: "success",
-      message: "Profile updated sucessfully",
+      message: "Profile updated successfully",
       data: updatedProfile,
     });
   } catch (error: any) {
@@ -170,4 +209,6 @@ export default {
   logout,
   getProfile,
   updateProfile,
+  googleLogin,
+  googleCallback,
 };

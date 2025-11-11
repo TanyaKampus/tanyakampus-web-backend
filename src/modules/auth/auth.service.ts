@@ -1,6 +1,8 @@
 import authRepository from "./auth.repository";
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { oauth2Client } from "../../config/google";
+import { google } from "googleapis";
 
 interface UserPayload {
   user_id: string;
@@ -29,6 +31,40 @@ const generateTokens = (user: UserPayload) => {
   );
 
   return { refreshToken, accessToken };
+};
+
+const loginWithGoogle = async (code: string) => {
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+
+  const oauth2 = google.oauth2({
+    auth: oauth2Client,
+    version: "v2",
+  });
+
+  const { data } = await oauth2.userinfo.get();
+
+  if (!data.email) throw new Error("Failed to retrieve google account data");
+
+  let user = await authRepository.findUserByEmail(data.email);
+
+  if (!user) {
+    user = await authRepository.createUser({
+      email: data.email,
+      password: "GOOGLE_AUTH",
+      profile: {
+        create: {
+          nama: data.name || "",
+          jenis_kelamin: "",
+          tanggal_lahir: null,
+        },
+      },
+    });
+  }
+
+  const { refreshToken, accessToken } = generateTokens(user);
+
+  return { refreshToken, accessToken, user };
 };
 
 const register = async (email: string, password: string) => {
@@ -143,4 +179,5 @@ export default {
   logout,
   getProfile,
   updateProfile,
+  loginWithGoogle,
 };
