@@ -160,14 +160,25 @@ model HasilBidang {
 }
 
 model Jurusan {
-  jurusan_id   String   @id @default(uuid())
-  nama_jurusan String
-  deskripsi    String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  jurusan_id     String   @id @default(uuid())
+  nama_jurusan   String
+  deskripsi      String?
 
+  jurusanKampus  JurusanKampus[]
   hasilJurusan HasilJurusan[]
-  kampus       Kampus[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+
+model JurusanKampus {
+  id          String   @id @default(uuid())
+  kampus_id   String
+  jurusan_id  String
+
+  kampus      Kampus    @relation(fields: [kampus_id], references: [kampus_id])
+  jurusan     Jurusan   @relation(fields: [jurusan_id], references: [jurusan_id])
 }
 
 model HasilJurusan {
@@ -181,16 +192,16 @@ model HasilJurusan {
 
 model Kampus {
   kampus_id      String   @id @default(uuid())
-  jurusan_id     String
-  jenis_kampus   String
   nama_kampus    String
+  jenis_kampus   String
   deskripsi_kampus String?
   foto_kampus    String?
+
+  jurusanKampus  JurusanKampus[]
+  hasilKampus    HasilKampus[]
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-
-  jurusan        Jurusan    @relation(fields: [jurusan_id], references: [jurusan_id])
-  hasilKampus    HasilKampus[]
 }
 
 model HasilKampus {
