@@ -35,21 +35,21 @@ async function main() {
   const kampusData = [
     {
       nama_kampus: "Institut Teknologi Bandung",
-      jenis_kampus: "Universitas",
+      jenis_kampus: "Negeri",
       deskripsi_kampus: "Perguruan tinggi teknik terbaik di Indonesia.",
       foto_kampus: "/img/itb.jpg",
       jurusan: ["Teknik Informatika", "Sistem Informasi", "Teknik Elektro"],
     },
     {
       nama_kampus: "Universitas Telkom",
-      jenis_kampus: "Universitas",
+      jenis_kampus: "Swasta",
       deskripsi_kampus: "Kampus swasta dengan teknologi modern.",
       foto_kampus: "/img/telkom.jpg",
       jurusan: ["Informatika", "Sistem Informasi", "Desain Komunikasi Visual"],
     },
     {
       nama_kampus: "Universitas Padjadjaran",
-      jenis_kampus: "Universitas",
+      jenis_kampus: "Negeri",
       deskripsi_kampus: "Universitas negeri unggulan di Bandung.",
       foto_kampus: "/img/unpad.jpg",
       jurusan: ["Manajemen", "Akuntansi", "Teknik Informatika"],
