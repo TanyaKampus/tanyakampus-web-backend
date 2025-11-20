@@ -6,6 +6,7 @@ import cors from "cors"
 dotenv.config();
 
 import authRoutes from './modules/auth/auth.routes'
+import campusRoutes from "./modules/campus/campus.routes"
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
@@ -18,6 +19,7 @@ app.use(
 );;
 
 app.use("/api/auth", authRoutes)
+app.use("/api/campus", campusRoutes)
 
 export default app
 
