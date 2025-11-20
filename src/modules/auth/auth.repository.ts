@@ -44,7 +44,7 @@ const findUserById = async (user_id: string) => {
       user_id,
     },
     include: {
-      profile: true, // ambil data profil juga
+      profile: true, 
     },
   });
 };

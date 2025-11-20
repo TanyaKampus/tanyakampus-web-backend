@@ -223,7 +223,7 @@ const updateProfile = async (
 
   const updatedProfile = await authRepository.updateProfile(user_id, data);
 
-  return updatedProfile;
+  return updatedProfile
 };
 
 export default {

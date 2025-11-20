@@ -46,7 +46,7 @@ const googleCallback = async (req: Request, res: Response) => {
 
     setCookies(res, accessToken, refreshToken);
 
-    // res.redirect(`http://localhost:5173/`); redirect to frontend
+    // res.redirect(`https://tanyakampus.vercel.app/`); redirect to frontend
 
     res.json({
       status: "success",
