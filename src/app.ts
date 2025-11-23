@@ -7,6 +7,8 @@ dotenv.config();
 
 import authRoutes from './modules/auth/auth.routes'
 import campusRoutes from "./modules/campus/campus.routes"
+import majorRoutes from "./modules/major/major.routes"
+
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
@@ -20,6 +22,7 @@ app.use(
 
 app.use("/api/auth", authRoutes)
 app.use("/api/campus", campusRoutes)
+app.use("/api/major", majorRoutes)
 
 export default app
 
