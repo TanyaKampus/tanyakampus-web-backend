@@ -4,21 +4,31 @@ const getCampusById = async (kampus_id: string) => {
   const campus = await prisma.kampus.findUnique({
     where: { kampus_id },
     include: {
-      jurusanKampus: { include: { jurusan: true } },
+      jurusanKampus: {
+        include: {
+          jurusan: {
+            select: {
+              jurusan_id: true,
+              nama_jurusan: true,
+            },
+          },
+        },
+      },
     },
   });
 
   if (!campus) return null;
 
+  const { jurusanKampus, ...rest } = campus;
+
   return {
-    ...campus,
-    jurusan: campus.jurusanKampus.map((jk) => ({
-      jurusan_id: jk.jurusan.jurusan_id,
-      nama_jurusan: jk.jurusan.nama_jurusan,
-      deskripsi: jk.jurusan.deskripsi,
-    })),
+    ...rest,
+    jurusan: jurusanKampus.map((jk) => jk.jurusan),
   };
 };
+
+
+
 
 const getAllCampus = async () => {
   return prisma.kampus.findMany({
@@ -32,48 +42,32 @@ const getAllCampus = async () => {
   });
 };
 
-const getJurusanById = async (jurusan_id: string) => {
-  const jurusan = await prisma.jurusan.findUnique({
-    where: { jurusan_id },
-    include: { jurusanKampus: { include: { kampus: true } } },
-  });
+const createCampus = async (data:any) => {
+  return prisma.kampus.create({
+    data,
+  })
+}
 
-  if (!jurusan) return null;
+const updateCampus = async (kampus_id: string, data: any) => {
+  return prisma.kampus.update({
+    where: {
+      kampus_id,
+    },
+    data
+  })
+}
 
-  return {
-    jurusan_id: jurusan.jurusan_id,
-    nama_jurusan: jurusan.nama_jurusan,
-    deskripsi: jurusan.deskripsi,
-    kampus: jurusan.jurusanKampus.map((jk) => ({
-      kampus_id: jk.kampus.kampus_id,
-      nama_kampus: jk.kampus.nama_kampus,
-      jenis_kampus: jk.kampus.jenis_kampus,
-      deskripsi_kampus: jk.kampus.deskripsi_kampus,
-    })),
-  };
-};
+const deleteCampus = async(kampus_id: string) => {
+  return prisma.kampus.delete({
+    where: {kampus_id}
+  })
+}
 
-const getAllJurusan = async () => {
-  const jurusans = await prisma.jurusan.findMany({
-    include: { jurusanKampus: { include: { kampus: true } } },
-  });
-
-  return jurusans.map((jurusan) => ({
-    jurusan_id: jurusan.jurusan_id,
-    nama_jurusan: jurusan.nama_jurusan,
-    deskripsi: jurusan.deskripsi,
-    kampus: jurusan.jurusanKampus.map((jk) => ({
-      kampus_id: jk.kampus.kampus_id,
-      nama_kampus: jk.kampus.nama_kampus,
-      jenis_kampus: jk.kampus.jenis_kampus,
-      deskripsi_kampus: jk.kampus.deskripsi_kampus,
-    })),
-  }));
-};
 
 export default {
   getAllCampus,
-  getAllJurusan,
   getCampusById,
-  getJurusanById,
+  createCampus,
+  updateCampus,
+  deleteCampus,
 };
