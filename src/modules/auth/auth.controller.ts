@@ -86,7 +86,7 @@ const registerDetails = async (req: Request, res: Response) => {
 
     if (!token) throw new Error("Invalid token");
 
-    const result = await authService.registerDetails(token, {
+    const data = await authService.registerDetails(token, {
       password,
       nama,
       no_telepon,
@@ -94,14 +94,14 @@ const registerDetails = async (req: Request, res: Response) => {
       jenis_kelamin,
     });
 
-    const { accessToken, refreshToken } = result;
+    const { accessToken, refreshToken } = data;
 
     setCookies(res, accessToken, refreshToken);
 
     res.status(201).json({
       status: "success",
       message: "User created successfully",
-      result,
+      data,
     });
   } catch (error: any) {
     res.status(400).json({
@@ -124,7 +124,7 @@ const login = async (req: Request, res: Response) => {
     res.status(200).json({
       status: "success",
       message: "Login success",
-      user,
+      data: user,
     });
   } catch (error: any) {
     res.status(400).json({
