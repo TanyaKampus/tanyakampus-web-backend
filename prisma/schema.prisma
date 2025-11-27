@@ -177,8 +177,8 @@ model JurusanKampus {
   kampus_id   String
   jurusan_id  String
 
-  kampus      Kampus    @relation(fields: [kampus_id], references: [kampus_id])
-  jurusan     Jurusan   @relation(fields: [jurusan_id], references: [jurusan_id])
+  kampus      Kampus    @relation(fields: [kampus_id], references: [kampus_id], onDelete: Cascade)
+  jurusan     Jurusan   @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
 }
 
 model HasilJurusan {
