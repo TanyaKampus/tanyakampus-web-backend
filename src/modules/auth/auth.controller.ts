@@ -91,7 +91,7 @@ const registerDetails = async (req: Request, res: Response) => {
       nama,
       no_telepon,
       asal_sekolah,
-      jenis_kelamin,
+      jenis_kelamin  
     });
 
     const { accessToken, refreshToken } = data;

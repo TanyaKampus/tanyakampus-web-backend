@@ -54,8 +54,10 @@ const loginWithGoogle = async (code: string) => {
       profile: {
         create: {
           nama: data.name || "",
+          asal_sekolah: "",
           jenis_kelamin: "",
           tanggal_lahir: null,
+          no_telepon: "",
         },
       },
     });
@@ -123,7 +125,6 @@ const loginWithGoogle = async (code: string) => {
          asal_sekolah: data.asal_sekolah,
          no_telepon: data.no_telepon,
          jenis_kelamin: data.jenis_kelamin,
-         tanggal_lahir: null,
        },
      },
    });
@@ -140,7 +141,6 @@ const loginWithGoogle = async (code: string) => {
       asal_sekolah:data.asal_sekolah,
       no_telepon:data.no_telepon,
       jenis_kelamin:data.jenis_kelamin,
-      tanggal_lahir:null
      },
      refreshToken,
      accessToken,
