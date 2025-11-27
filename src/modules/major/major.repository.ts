@@ -35,10 +35,21 @@ const deleteMajor = async (jurusan_id: string) => {
     })
 }
 
+const findManyMajorsById = async (jurusan_ids: string[]) => {
+  return await prisma.jurusan.findMany({
+    where: {
+      jurusan_id: {
+        in: jurusan_ids,
+      },
+    },
+  });
+};
+
 export default {
   createMajor,
   getAllMajor,
   getMajorById,
   updateMajor,
   deleteMajor,
+  findManyMajorsById,
 };
