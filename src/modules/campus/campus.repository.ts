@@ -42,11 +42,61 @@ const getAllCampus = async () => {
   });
 };
 
-const createCampus = async (data:any) => {
-  return prisma.kampus.create({
-    data,
-  })
-}
+const createCampus = async (data: {
+  nama_kampus: string;
+  jenis_kampus: string;
+  deskripsi_kampus?: string;
+  foto_kampus?: string;
+  jurusan_ids?: string[];
+}) => {
+  // Prepare data untuk Prisma
+  const campusData: any = {
+    nama_kampus: data.nama_kampus,
+    jenis_kampus: data.jenis_kampus,
+  };
+
+  // Hanya tambahkan field jika ada value
+  if (data.deskripsi_kampus !== undefined) {
+    campusData.deskripsi_kampus = data.deskripsi_kampus;
+  }
+
+  if (data.foto_kampus !== undefined) {
+    campusData.foto_kampus = data.foto_kampus;
+  }
+
+  // Tambahkan relasi jurusan jika ada
+  if (data.jurusan_ids && data.jurusan_ids.length > 0) {
+    campusData.jurusanKampus = {
+      create: data.jurusan_ids.map((jurusan_id) => ({
+        jurusan_id,
+      })),
+    };
+  }
+
+  const campus = await prisma.kampus.create({
+    data: campusData,
+    include: {
+      jurusanKampus: {
+        include: {
+          jurusan: {
+            select: {
+              jurusan_id: true,
+              nama_jurusan: true,
+              deskripsi: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Transform response
+  const { jurusanKampus, ...rest } = campus;
+  return {
+    ...rest,
+    jurusan: jurusanKampus.map((jk) => jk.jurusan),
+  };
+};
 
 const updateCampus = async (kampus_id: string, data: any) => {
   return prisma.kampus.update({

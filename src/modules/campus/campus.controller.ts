@@ -4,10 +4,14 @@ import { Request, Response } from "express";
 const getAllCampus = async (req: Request, res: Response) => {
   try {
     const data = await campusService.getAllCampus();
-    return res.json(data);
+    return res.status(200).json({
+        status: "success",
+        message: "Data retrieved successfully",
+        data,
+    });
   } catch (error: any) {
     res.status(500).json({
-      status: true,
+      status: "error",
       message: error.message,
     });
   }

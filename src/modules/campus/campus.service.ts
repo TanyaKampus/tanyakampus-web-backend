@@ -1,4 +1,6 @@
 import campusRepository from "./campus.repository";
+import majorRepository from "../major/major.repository";
+import { log } from "console";
 
 const getAllCampus = async () => {
   const campusList = await campusRepository.getAllCampus();
@@ -10,7 +12,8 @@ const getAllCampus = async () => {
 
 const getCampusById = async (kampus_id: string) => {
   const campus = await campusRepository.getCampusById(kampus_id);
-  if (!campus) return null;
+
+  if (!campus) throw new Error("Campus not found");
 
   return campus;
 };
@@ -18,9 +21,31 @@ const getCampusById = async (kampus_id: string) => {
 const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
-  deskripsi_kampus: string;
+  deskripsi_kampus?: string;
   foto_kampus?: string;
+  jurusan_ids: string[];
 }) => {
+
+   if (!data.nama_kampus?.trim()) {
+     throw new Error("Campus name is required");
+   }
+
+   if (!data.jenis_kampus?.trim()) {
+     throw new Error("Campus type is required");
+   }
+
+  // Validasi jurusan jika ada
+  if (data.jurusan_ids && data.jurusan_ids.length > 0) {
+    const majorsExist = await majorRepository.findManyMajorsById(data.jurusan_ids);
+   
+    // console.log(majorsExist);
+    
+    if (majorsExist.length !== data.jurusan_ids.length) {
+      throw new Error("Some majors not found");
+    }
+  }
+
+  // Create campus + attach jurusan
   const result = await campusRepository.createCampus(data);
 
   return result;
@@ -29,7 +54,7 @@ const createCampus = async (data: {
 const updateCampus = async (
   kampus_id: string,
   data: {
-    nama_kampus: string;
+    nama_kampus: string; 
     jenis_kampus: string;
     deskripsi_kampus: string;
     foto_kampus?: string;
@@ -43,10 +68,10 @@ const updateCampus = async (
 };
 
 const deleteCampus = async (kampus_id: string) => {
-  const campus = await campusRepository.deleteCampus(kampus_id)
+  const campus = await campusRepository.deleteCampus(kampus_id);
 
-  return campus
-}
+  return campus;
+};
 
 export default {
   getAllCampus,
