@@ -6,6 +6,7 @@ import cors from "cors"
 dotenv.config();
 
 import authRoutes from './modules/auth/auth.routes'
+import userRoutes from "./modules/user/user.routes"
 import campusRoutes from "./modules/campus/campus.routes"
 import majorRoutes from "./modules/major/major.routes"
 
@@ -21,6 +22,7 @@ app.use(
 );;
 
 app.use("/api/auth", authRoutes)
+app.use("/api/user", userRoutes)
 app.use("/api/campus", campusRoutes)
 app.use("/api/major", majorRoutes)
 
