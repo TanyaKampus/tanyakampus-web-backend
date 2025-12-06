@@ -15,9 +15,6 @@ router.post("/refresh-token", authController.refreshAccessToken)
 router.get("/google", authController.googleLogin);
 router.get("/google/callback", authController.googleCallback)
 
-router.get("/me", authMiddleware.protectRoute ,authController.getProfile)
-
-router.put("/profile", authMiddleware.protectRoute , authController.updateProfile)
 
 export default router;
 
