@@ -68,84 +68,49 @@ const loginWithGoogle = async (code: string) => {
   return { refreshToken, accessToken, user };
 };
 
- const register = async (email: string) => {
-   const existingUser = await authRepository.findUserByEmail?.(email);
+const register = async (data: {
+  email: string;
+  password: string;
+  nama: string;
+  no_telepon: string;
+  asal_sekolah: string;
+  jenis_kelamin: string;
+}) => {
+  const existingUser = await authRepository.findUserByEmail?.(data.email);
 
-   if (existingUser) throw new Error("Email already used");
+  if (existingUser) throw new Error("Email already used");
 
-   const tempUser = await authRepository.findTempUserByEmail(email);
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
-   if (!tempUser) {
-     await authRepository.createTempUser(email);
-   }
-   if (!process.env.TEMP_TOKEN_SECRET) {
-     throw new Error("Missing JWT secret(s) in environment variables");
-   }
+  const user = await authRepository.createUser({
+    email: data.email,
+    password: hashedPassword,
+    profile: {
+      create: {
+        nama: data.nama,
+        asal_sekolah: data.asal_sekolah,
+        no_telepon: data.no_telepon,
+        jenis_kelamin: data.jenis_kelamin,
+      },
+    },
+  });
 
-   const tempToken = jwt.sign({ email }, process.env.TEMP_TOKEN_SECRET, {
-     expiresIn: "5m",
-   });
+  const { refreshToken, accessToken } = generateTokens(user);
 
-   return {
-     message: "Email received, fill your data identity",
-     tempToken,
-   };
- };
+  return {
+    user: {
+      email: data.email,
+      nama: data.nama,
+      asal_sekolah: data.asal_sekolah,
+      no_telepon: data.no_telepon,
+      jenis_kelamin: data.jenis_kelamin,
 
- const registerDetails = async (
-   token: string,
-   data: {
-     password: string;
-     nama: string;
-     no_telepon: string
-     asal_sekolah: string;
-     jenis_kelamin: string;
-   }
- ) => {
-   let decoded: any;
+    },
 
-   if (!process.env.TEMP_TOKEN_SECRET) {
-     throw new Error("Missing JWT secret(s) in environment variables");
-   }
-   decoded = jwt.verify(token, process.env.TEMP_TOKEN_SECRET);
-
-   const email = decoded.email;
-   const tempUser = await authRepository.findTempUserByEmail(email);
-
-   if (!tempUser) throw new Error("Invalid token");
-
-   const hashedPassword = await bcrypt.hash(data.password, 10);
-
-   const user = await authRepository.createUser({
-     email,
-     password: hashedPassword,
-     profile: {
-       create: {
-         nama:data.nama,
-         asal_sekolah: data.asal_sekolah,
-         no_telepon: data.no_telepon,
-         jenis_kelamin: data.jenis_kelamin,
-       },
-     },
-   });
-
-   await authRepository.deleteTempUser(email);
-
-   const { refreshToken, accessToken } = generateTokens(user);
-   
-   return {
-     message: "Register successfull",
-     user:{
-      email,
-      nama:data.nama,
-      asal_sekolah:data.asal_sekolah,
-      no_telepon:data.no_telepon,
-      jenis_kelamin:data.jenis_kelamin,
-     },
-     refreshToken,
-     accessToken,
-   };
- };
+    refreshToken,
+    accessToken,
+  };
+};
 
 const login = async (email: string, password: string) => {
   const user = await authRepository.findUserByEmail(email);
@@ -223,17 +188,15 @@ const updateProfile = async (
 
   const updatedProfile = await authRepository.updateProfile(user_id, data);
 
-  return updatedProfile
+  return updatedProfile;
 };
 
 export default {
   register,
-  registerDetails,
   login,
   refreshAccessToken,
   logout,
   getProfile,
   updateProfile,
   loginWithGoogle,
- 
 };

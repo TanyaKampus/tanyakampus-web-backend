@@ -1,12 +1,14 @@
 import express from "express";
 import authController from "./auth.controller";
 import authMiddleware from "../../middleware/auth"
+import { validate } from "../../middleware/validate"
+import { loginSchema, registerSchema } from "./auth.schema";
+
 const router = express.Router();
 
 
-router.post("/register", authController.register)
-router.post("/register/details", authController.registerDetails)
-router.post("/login", authController.login);
+router.post("/register", validate(registerSchema), authController.register)
+router.post("/login", validate(loginSchema), authController.login);
 router.delete("/logout", authController.logout);
 router.post("/refresh-token", authController.refreshAccessToken)
 

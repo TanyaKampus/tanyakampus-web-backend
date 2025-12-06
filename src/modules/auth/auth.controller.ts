@@ -63,45 +63,25 @@ const googleCallback = async (req: Request, res: Response) => {
 
 const register = async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
+    const { email, password, nama, asal_sekolah, jenis_kelamin, no_telepon } = req.body;
 
-    const tempUser = await authService.register(email);
-
-    res.status(200).json(tempUser);
-  } catch (error: any) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
-
-const registerDetails = async (req: Request, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) throw new Error("JWT must be provided");
-
-    const token = authHeader.split(" ")[1];
-    const { password, nama, asal_sekolah, jenis_kelamin, no_telepon } =
-      req.body;
-
-    if (!token) throw new Error("Invalid token");
-
-    const data = await authService.registerDetails(token, {
+    const data = await authService.register({
+      email,
       password,
       nama,
       no_telepon,
       asal_sekolah,
-      jenis_kelamin  
+      jenis_kelamin,
     });
 
-    const { accessToken, refreshToken } = data;
+    const { accessToken, refreshToken, user } = data;
 
     setCookies(res, accessToken, refreshToken);
 
     res.status(201).json({
       status: "success",
       message: "User created successfully",
-      data,
+      data: user,
     });
   } catch (error: any) {
     res.status(400).json({
@@ -228,7 +208,6 @@ const updateProfile = async (req: Request, res: Response) => {
 
 export default {
   register,
-  registerDetails,
   login,
   refreshAccessToken,
   logout,
