@@ -3,35 +3,7 @@ import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { oauth2Client } from "../../config/google";
 import { google } from "googleapis";
-
-interface UserPayload {
-  user_id: string;
-  email: string;
-  role: string;
-}
-
-const generateTokens = (user: UserPayload) => {
-  const payload = {
-    id: user.user_id,
-    email: user.email,
-    role: user.role,
-  };
-
-  if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
-    throw new Error("Missing JWT secret in environment variables");
-  }
-  const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
-  });
-
-  const refreshToken = jwt.sign(
-    { id: user.user_id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  return { refreshToken, accessToken };
-};
+import { generateTokens } from "../../utils/token"
 
 const loginWithGoogle = async (code: string) => {
   const { tokens } = await oauth2Client.getToken(code);
