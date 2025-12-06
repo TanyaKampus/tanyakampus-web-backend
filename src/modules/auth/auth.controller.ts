@@ -1,27 +1,7 @@
 import { oauth2Client, scopes } from "../../config/google";
 import authService from "./auth.service";
 import { Request, Response } from "express";
-
-const setCookies = async (
-  res: Response,
-  accessToken: string,
-  refreshToken: string
-) => {
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000,
-    path: "/",
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-};
+import { setCookies } from "../../utils/cookies";
 
 const googleLogin = (req: Request, res: Response) => {
   const authorizationUrl = oauth2Client.generateAuthUrl({
@@ -63,7 +43,8 @@ const googleCallback = async (req: Request, res: Response) => {
 
 const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, nama, asal_sekolah, jenis_kelamin, no_telepon } = req.body;
+    const { email, password, nama, asal_sekolah, jenis_kelamin, no_telepon } =
+      req.body;
 
     const data = await authService.register({
       email,
