@@ -1,17 +1,23 @@
-import { ZodObject, z } from "zod";
+import { z, ZodType } from "zod";
 import { Request, Response, NextFunction } from "express";
 
 export const validate =
-  (schema: ZodObject) => (req: Request, res: Response, next: NextFunction) => {
-    const parsed = schema.safeParse(req.body);
-    if (!parsed.success) {
-      const pretty = z.prettifyError(parsed.error);
+  (schema: ZodType) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+
+    if (!result.success) {
+      const flattened = z.flattenError(result.error);
+
       return res.status(400).json({
-        status: "error",
+        success: false,
         message: "Validation failed",
-        errors: pretty,
+        errors: {
+          fieldErrors: flattened.fieldErrors,
+        },
       });
     }
-    req.body = parsed.data;
+
+    req.body = result.data;
     next();
   };

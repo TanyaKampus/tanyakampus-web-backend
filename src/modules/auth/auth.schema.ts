@@ -1,19 +1,19 @@
-import { z } from "zod"
+import { z } from "zod";
 
 export const registerSchema = z.object({
-  email: z.email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal diisi 6 karakter"),
-  nama: z.string().min(1, "Nama minimal diisi 6 karakter"),
-  no_telepon: z.string().regex(/^8[0-9]{8,11}$/, "Nomor telepon tidak valid"),
-  asal_sekolah: z.string().min(1, "Asal sekolah wajib diisi"),
+  email: z.email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+  nama: z.string().min(1, "Name is required"),
+  no_telepon: z.string().regex(/^8[0-9]{8,11}$/, "Invalid phone number"),
+  asal_sekolah: z.string().min(1, "School name is required"),
   jenis_kelamin: z.enum(["Laki-laki", "Perempuan"], {
-    message: "Jenis kelamin harus Laki-laki atau Perempuan",
+    message: "Gender must be either Laki-laki or Perempuan",
   }),
 });
 
 export const loginSchema = z.object({
-  email: z.email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal diisi 6 karakter"),
+  email: z.email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
