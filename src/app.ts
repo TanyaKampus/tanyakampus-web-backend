@@ -9,6 +9,7 @@ import authRoutes from './modules/auth/auth.routes'
 import userRoutes from "./modules/user/user.routes"
 import campusRoutes from "./modules/campus/campus.routes"
 import majorRoutes from "./modules/major/major.routes"
+import fieldRoutes from "./modules/field/field.routes"
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/user", userRoutes)
 app.use("/api/campus", campusRoutes)
 app.use("/api/major", majorRoutes)
+app.use("/api/field", fieldRoutes)
 
 export default app
 
