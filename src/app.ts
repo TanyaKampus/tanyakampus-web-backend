@@ -10,6 +10,7 @@ import userRoutes from "./modules/user/user.routes"
 import campusRoutes from "./modules/campus/campus.routes"
 import majorRoutes from "./modules/major/major.routes"
 import fieldRoutes from "./modules/field/field.routes"
+import quizRoutes from "./modules/quiz/quiz.routes"
 
 const app = express();
 
@@ -27,6 +28,8 @@ app.use("/api/user", userRoutes)
 app.use("/api/campus", campusRoutes)
 app.use("/api/major", majorRoutes)
 app.use("/api/field", fieldRoutes)
+app.use("/api/quiz", quizRoutes)
+
 
 export default app
 
