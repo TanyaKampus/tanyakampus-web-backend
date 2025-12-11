@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// IMPROVED PRISMA SCHEMA - Tanya Kampus
+// Perbaikan struktur database untuk sistem quiz minat & bakat
 
 generator client {
   provider = "prisma-client-js"
@@ -13,58 +10,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Role {
   ADMIN
   USER
 }
 
-model User {
-  user_id    String   @id @default(uuid())
-  email      String    @unique
-  password   String? 
-  role       Role      @default(USER)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  profile        Profile?
-  favorites      Favorite[]
-  jawabanUsers   JawabanUser[]
-  hasil          Hasil[]
-  riwayatQuiz    RiwayatQuiz[]
+enum StatusQuiz {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
 }
 
-model TempUser {
-   tempUser_id    String   @id @default(uuid())
-   email          String   @unique
-   createdAt      DateTime @default(now())
-   expiresAt      DateTime @default(now())
+// ==================== USER & PROFILE ====================
+model User {
+  user_id    String   @id @default(uuid())
+  email      String   @unique
+  password   String? 
+  role       Role     @default(USER)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  profile       Profile?
+  favorites     Favorite[]
+  riwayatQuiz   RiwayatQuiz[]
+
+  @@index([email])
 }
 
 model Profile {
-  profile_id    String   @id @default(uuid())
+  profile_id    String    @id @default(uuid())
   nama          String
   jenis_kelamin String?
   tanggal_lahir DateTime?
+  foto_profil   String?
   no_telepon    String
   asal_sekolah  String
-  user_id       String   @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  user_id       String    @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user          User     @relation(fields: [user_id], references: [user_id])
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 }
 
+// ==================== MENTOR ====================
 model Mentor {
   mentor_id    String   @id @default(uuid())
   nama_mentor  String
   pendidikan   String
   keahlian     String
-  foto_mentor  String
+  foto_mentor  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  favorites    Favorite[]
+  favorites Favorite[]
 }
 
 model Favorite {
@@ -73,158 +71,212 @@ model Favorite {
   mentor_id   String
   createdAt   DateTime @default(now())
 
-  user       User    @relation(fields: [user_id], references: [user_id])
-  mentor     Mentor  @relation(fields: [mentor_id], references: [mentor_id])
+  user   User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  mentor Mentor @relation(fields: [mentor_id], references: [mentor_id], onDelete: Cascade)
+
+  @@unique([user_id, mentor_id]) // Prevent duplicate favorites
+  @@index([user_id])
+  @@index([mentor_id])
 }
 
-model Quiz {
-  quiz_id      String   @id @default(uuid())
-  nama_quiz    String
-  deskripsi_quiz String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+// ==================== BIDANG (Interest Area) ====================
+model Bidang {
+  bidang_id    String   @id @default(uuid())
+  nama_bidang  String   @unique
+  deskripsi    String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  pertanyaan   Pertanyaan[]
-  riwayatQuiz  RiwayatQuiz[]
-  hasil       Hasil[]
+  jawabanBidang JawabanBidang[]
+  hasilBidang   HasilBidang[]
+  jurusan       Jurusan[]
+}
+
+// ==================== QUIZ SYSTEM ====================
+model Quiz {
+  quiz_id         String   @id @default(uuid())
+  nama_quiz       String
+  deskripsi_quiz  String?  @db.Text
+  is_active       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  pertanyaan  Pertanyaan[]
+  riwayatQuiz RiwayatQuiz[]
 }
 
 model Pertanyaan {
   pertanyaan_id String   @id @default(uuid())
   quiz_id       String
-  soal          String
+  soal          String   @db.Text
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  quiz          Quiz     @relation(fields: [quiz_id], references: [quiz_id])
-  jawaban       Jawaban[]
-  jawabanUsers  JawabanUser[]
+  quiz         Quiz          @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
+  jawaban      Jawaban[]
+  jawabanUsers JawabanUser[]
+
+  @@index([quiz_id])
 }
 
 model Jawaban {
-  jawaban_id    String   @id @default(uuid())
-  pertanyaan_id String
-  pilihan_jawaban String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  jawaban_id      String   @id @default(uuid())
+  pertanyaan_id   String
+  teks_jawaban    String   @db.Text  // ✅ Pisahkan teks dari scoring
+  urutan          Int      // Urutan opsi jawaban (A, B, C, D)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  pertanyaan    Pertanyaan @relation(fields: [pertanyaan_id], references: [pertanyaan_id])
+  pertanyaan    Pertanyaan      @relation(fields: [pertanyaan_id], references: [pertanyaan_id], onDelete: Cascade)
   jawabanUsers  JawabanUser[]
+  jawabanBidang JawabanBidang[] // ✅ Relasi ke bidang dengan bobot
+
+  @@index([pertanyaan_id])
+}
+
+// ✅ NEW: Junction table untuk scoring jawaban per bidang
+model JawabanBidang {
+  id         String @id @default(uuid())
+  jawaban_id String
+  bidang_id  String
+  bobot      Int    // Bobot/skor untuk bidang ini (1-10)
+
+  jawaban Jawaban @relation(fields: [jawaban_id], references: [jawaban_id], onDelete: Cascade)
+  bidang  Bidang  @relation(fields: [bidang_id], references: [bidang_id], onDelete: Cascade)
+
+  @@unique([jawaban_id, bidang_id]) // Satu jawaban hanya punya 1 bobot per bidang
+  @@index([jawaban_id])
+  @@index([bidang_id])
 }
 
 model JawabanUser {
   jwbuser_id    String   @id @default(uuid())
-  user_id       String
+  riwayat_id    String   // ✅ Link ke riwayat quiz, bukan langsung ke user
   pertanyaan_id String
   jawaban_id    String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user          User      @relation(fields: [user_id], references: [user_id])
-  pertanyaan    Pertanyaan @relation(fields: [pertanyaan_id], references: [pertanyaan_id])
-  jawaban       Jawaban   @relation(fields: [jawaban_id], references: [jawaban_id])
+  riwayat    RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
+  pertanyaan Pertanyaan  @relation(fields: [pertanyaan_id], references: [pertanyaan_id], onDelete: Cascade)
+  jawaban    Jawaban     @relation(fields: [jawaban_id], references: [jawaban_id], onDelete: Cascade)
+
+  @@unique([riwayat_id, pertanyaan_id]) // Satu pertanyaan hanya bisa dijawab 1x per attempt
+  @@index([riwayat_id])
+  @@index([pertanyaan_id])
 }
 
-model Hasil {
-  hasil_id      String   @id @default(uuid())
-  user_id       String
-  quiz_id       String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+// ==================== HASIL & RIWAYAT ====================
+// ✅ IMPROVED: Gabungkan Hasil dan RiwayatQuiz jadi satu tabel
+model RiwayatQuiz {
+  riwayat_id     String      @id @default(uuid())
+  user_id        String
+  quiz_id        String
+  status_quiz    StatusQuiz  @default(IN_PROGRESS)
+  tanggal_mulai  DateTime    @default(now())
+  tanggal_selesai DateTime?
+  total_skor     Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  user          User       @relation(fields: [user_id], references: [user_id])
-  quiz          Quiz       @relation(fields: [quiz_id], references: [quiz_id])
+  user          User            @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  quiz          Quiz            @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
+  jawabanUsers  JawabanUser[]
   hasilBidang   HasilBidang[]
   hasilJurusan  HasilJurusan[]
   hasilKampus   HasilKampus[]
-  riwayatQuiz   RiwayatQuiz[]
-}
 
-model Bidang {
-  bidang_id    String   @id @default(uuid())
-  nama_bidang  String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  hasilBidang  HasilBidang[]
+  @@index([user_id])
+  @@index([quiz_id])
+  @@index([user_id, quiz_id])
+  @@index([status_quiz])
 }
 
 model HasilBidang {
-  hasilbidang_id String   @id @default(uuid())
-  hasil_id       String
-  bidang_id      String
-  skor_bidang    Int
+  id          String @id @default(uuid())
+  riwayat_id  String
+  bidang_id   String
+  skor_bidang Int
+  persentase  Float? // Persentase dari total skor
+  createdAt   DateTime @default(now())
 
-  hasil          Hasil   @relation(fields: [hasil_id], references: [hasil_id])
-  bidang         Bidang  @relation(fields: [bidang_id], references: [bidang_id])
+  riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
+  bidang  Bidang      @relation(fields: [bidang_id], references: [bidang_id], onDelete: Cascade)
+
+  @@unique([riwayat_id, bidang_id])
+  @@index([riwayat_id])
+  @@index([bidang_id])
 }
 
+// ==================== JURUSAN & KAMPUS ====================
 model Jurusan {
   jurusan_id     String   @id @default(uuid())
   nama_jurusan   String
-  deskripsi      String?
+  deskripsi      String?  @db.Text
+  bidang_id      String?  // ✅ Link jurusan ke bidang utama
+  icon           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  bidang         Bidang?         @relation(fields: [bidang_id], references: [bidang_id])
   jurusanKampus  JurusanKampus[]
-  hasilJurusan HasilJurusan[]
+  hasilJurusan   HasilJurusan[]
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  @@index([bidang_id])
 }
 
-
 model JurusanKampus {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   kampus_id   String
   jurusan_id  String
 
-  kampus      Kampus    @relation(fields: [kampus_id], references: [kampus_id], onDelete: Cascade)
-  jurusan     Jurusan   @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
+  kampus  Kampus  @relation(fields: [kampus_id], references: [kampus_id], onDelete: Cascade)
+  jurusan Jurusan @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
+
+  @@unique([kampus_id, jurusan_id])
+  @@index([kampus_id])
+  @@index([jurusan_id])
 }
 
 model HasilJurusan {
-  hasiljurusan_id String   @id @default(uuid())
-  hasil_id        String
-  jurusan_id      String
+  id          String @id @default(uuid())
+  riwayat_id  String
+  jurusan_id  String
+  skor_match  Float? // Skor kecocokan (0-100)
+  rank        Int?   // Ranking rekomendasi
 
-  hasil           Hasil    @relation(fields: [hasil_id], references: [hasil_id])
-  jurusan         Jurusan  @relation(fields: [jurusan_id], references: [jurusan_id])
+  riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
+  jurusan Jurusan     @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
+
+  @@unique([riwayat_id, jurusan_id])
+  @@index([riwayat_id])
+  @@index([jurusan_id])
 }
 
 model Kampus {
-  kampus_id      String   @id @default(uuid())
-  nama_kampus    String
-  jenis_kampus   String
-  deskripsi_kampus String?
-  foto_kampus    String?
+  kampus_id        String   @id @default(uuid())
+  nama_kampus      String
+  jenis_kampus     String   // Negeri, Swasta, Kedinasan
+  deskripsi_kampus String?  @db.Text
+  foto_kampus      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  jurusanKampus  JurusanKampus[]
-  hasilKampus    HasilKampus[]
-
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  jurusanKampus JurusanKampus[]
+  hasilKampus   HasilKampus[]
 }
 
 model HasilKampus {
-  hasilkampus_id String   @id @default(uuid())
-  hasil_id       String
-  kampus_id      String
+  id          String @id @default(uuid())
+  riwayat_id  String
+  kampus_id   String
+  skor_match  Float? // Skor kecocokan
 
-  hasil          Hasil   @relation(fields: [hasil_id], references: [hasil_id])
-  kampus         Kampus  @relation(fields: [kampus_id], references: [kampus_id])
-}
 
-model RiwayatQuiz {
-  riwayat_id    String   @id @default(uuid())
-  quiz_id       String
-  hasil_id      String
-  user_id       String
-  tanggal_quiz  DateTime
-  status_quiz   String
-  skor          Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
+  kampus  Kampus      @relation(fields: [kampus_id], references: [kampus_id], onDelete: Cascade)
 
-  quiz          Quiz     @relation(fields: [quiz_id], references: [quiz_id])
-  hasil         Hasil    @relation(fields: [hasil_id], references: [hasil_id])
-  user          User     @relation(fields: [user_id], references: [user_id])
+  @@unique([riwayat_id, kampus_id])
+  @@index([riwayat_id])
+  @@index([kampus_id])
 }
