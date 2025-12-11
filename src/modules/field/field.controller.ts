@@ -94,9 +94,35 @@ const updateField = async (req: Request, res: Response) => {
   }
 };
 
+const deleteField = async (req: Request, res: Response) => {
+  try {
+    const bidang_id = req.params.id
+
+    if(!bidang_id) {
+      return res.status(404).json({
+        message: "Missing field ID parameter",
+      });
+    }
+
+    const field = await fieldService.deleteField(bidang_id)
+
+    return res.status(200).json({
+      success: true,
+      message: "Field successfully deleted",
+      field,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+}
+
 export default {
   createField,
   getAllFields,
   getFieldById,
   updateField,
+  deleteField,
 };

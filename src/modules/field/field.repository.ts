@@ -35,10 +35,20 @@ const updateField = (bidang_id: string, data: {
     })
 }
 
+const deleteField = (bidang_id: string) => {
+    return prisma.bidang.delete({
+        where: {
+            bidang_id,
+        },
+
+    })
+}
+
 
 export default{ 
     createField,
     getAllFields,
     getFieldById,
-    updateField
+    updateField,
+    deleteField,
 }

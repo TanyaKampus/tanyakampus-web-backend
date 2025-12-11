@@ -38,9 +38,16 @@ const updateField = async (
   return field;
 };
 
+const deleteField = async (bidang_id: string) => {
+    const field = await fieldRepository.deleteField(bidang_id)
+
+    return field
+}
+
 export default {
   createField,
   getAllFields,
   getFieldById,
   updateField,
+  deleteField,
 };

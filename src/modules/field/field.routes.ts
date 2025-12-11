@@ -7,6 +7,7 @@ router.post("/", fieldController.createField)
 router.get("/", fieldController.getAllFields)
 router.get("/:id", fieldController.getFieldById)
 router.patch("/:id", fieldController.updateField)
+router.delete("/:id", fieldController.deleteField)
 
 
 
