@@ -1,22 +1,61 @@
 import prisma from "../../config/prisma";
 
-const createMajor = async (data: any) => {
-  return await prisma.jurusan.create({
-    data,
+const createMajor = async (data: {
+  nama_jurusan: string,
+  deskripsi: string,
+  bidang_id: string
+}) => {
+  return prisma.jurusan.create({
+    data: {
+      nama_jurusan: data.nama_jurusan,
+      deskripsi: data.deskripsi,
+      bidang: {
+        connect: { bidang_id: data.bidang_id },
+      },
+    },
+    include: {
+      bidang: true,
+    },
   });
 };
 
 const getAllMajor = async () => {
-  return await prisma.jurusan.findMany();
-}
+  return prisma.jurusan.findMany({
+    select: {
+      jurusan_id: true,
+      nama_jurusan: true,
+      deskripsi: true,
+      icon: true,
+      bidang: {
+        select: {
+          bidang_id: true,
+          nama_bidang: true
+        }
+      }
+    }
+  });
+};
 
 const getMajorById = async (jurusan_id: string) => {
-    return await prisma.jurusan.findUnique({
-        where:{
-            jurusan_id
-        }
-    })
-}
+  return prisma.jurusan.findUnique({
+    where: { jurusan_id },
+    select: {
+      jurusan_id: true,
+      nama_jurusan: true,
+      deskripsi: true,
+      icon: true,
+      createdAt: true,
+      updatedAt: true,
+      bidang: {
+        select: {
+          bidang_id: true,
+          nama_bidang: true,
+          deskripsi: true,
+        },
+      },
+    },
+  });
+};
 
 const updateMajor = async (jurusan_id: string, data: any) => {
     return await prisma.jurusan.update({

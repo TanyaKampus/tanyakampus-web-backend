@@ -1,9 +1,9 @@
 import majorRepository from "./major.repository"
 
 const createMajor = async (data: {
-    jurusan_id: string,
     nama_jurusan: string,
     deskripsi: string,
+    bidang_id: string,
 }) => {
     const result = await majorRepository.createMajor(data)
 
