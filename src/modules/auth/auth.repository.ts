@@ -8,30 +8,6 @@ const findUserByEmail = async (email: string) => {
   });
 };
 
-const findTempUserByEmail = async (email: string) => {
-  return await prisma.tempUser.findUnique({
-    where: {
-      email
-    }
-  })
-}
-
-const createTempUser = async (email: string) => {
-  return await prisma.tempUser.create({
-    data: {
-      email,
-    },
-  });
-};
-
-const deleteTempUser = async (email: string) => {
-  return await prisma.tempUser.delete({
-    where: {
-      email,
-    },
-  });
-};
-
 const createUser = async (data: any) => {
   return await prisma.user.create({
     data,
@@ -75,7 +51,4 @@ export default {
   findUserById,
   findProfileById,
   updateProfile,
-  findTempUserByEmail,
-  createTempUser,
-  deleteTempUser
 };

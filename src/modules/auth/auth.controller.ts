@@ -1,7 +1,7 @@
 import { oauth2Client, scopes } from "../../config/google";
 import authService from "./auth.service";
 import { Request, Response } from "express";
-import { setCookies } from "../../utils/cookies";
+import { setCookies } from "../../helper/cookies";
 
 const googleLogin = (req: Request, res: Response) => {
   const authorizationUrl = oauth2Client.generateAuthUrl({

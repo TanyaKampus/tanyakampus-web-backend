@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { oauth2Client } from "../../config/google";
 import { google } from "googleapis";
-import { generateTokens } from "../../utils/token"
+import { generateTokens } from "../../helper/token"
 
 const loginWithGoogle = async (code: string) => {
   const { tokens } = await oauth2Client.getToken(code);
