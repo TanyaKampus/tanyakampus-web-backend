@@ -26,13 +26,7 @@ const googleCallback = async (req: Request, res: Response) => {
 
     setCookies(res, accessToken, refreshToken);
 
-    // res.redirect(`https://tanyakampus.vercel.app/`); redirect to frontend
-
-    res.json({
-      status: "success",
-      message: "Logged in with google",
-      data: user,
-    });
+    res.redirect(`https://tanyakampus.vercel.app/`); 
   } catch (error: any) {
     res.status(500).json({
       message: "Failed to login with google,",
