@@ -44,14 +44,14 @@ const deleteQuiz = async (quiz_id: string) => {
   });
 };
 
-const createQuestion = async (quiz_id: string, soal: string) => {
-  return await prisma.pertanyaan.create({
-    data: {
-      quiz_id,
-      soal
-    }
-  });
-};
+// const createQuestion = async (quiz_id: string, soal: string) => {
+//   return await prisma.pertanyaan.create({
+//     data: {
+//       quiz_id,
+//       soal
+//     }
+//   });
+// };
 
 export default {
   createQuiz,
@@ -59,7 +59,7 @@ export default {
   getQuizById,
   updateQuiz,
   deleteQuiz,
-  createQuestion,
+  // createQuestion,
 };
 
 // export const toggleQuizActive = async (quizId: string, isActive: boolean) => {
