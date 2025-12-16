@@ -49,7 +49,7 @@ const getFieldById = async (req: Request, res: Response) => {
 
     if (!bidang_id) {
       return res.status(404).json({
-        message: "Missing major ID parameter",
+        message: "Missing field ID parameter",
       });
     }
 
