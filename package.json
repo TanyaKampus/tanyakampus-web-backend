@@ -1,10 +1,12 @@
 {
   "name": "tanyakampus-web-backend",
   "version": "1.0.0",
-  "main": "server.ts",
+  "main": "dist/server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/src/server.js"
   },
   "repository": {
     "type": "git",
