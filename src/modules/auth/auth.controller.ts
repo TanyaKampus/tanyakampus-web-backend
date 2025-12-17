@@ -54,7 +54,7 @@ const register = async (req: Request, res: Response) => {
     setCookies(res, accessToken, refreshToken);
 
     res.status(201).json({
-      status: "success",
+      success: true,
       message: "User created successfully",
       data: user,
     });
@@ -77,13 +77,13 @@ const login = async (req: Request, res: Response) => {
     setCookies(res, accessToken, refreshToken);
 
     res.status(200).json({
-      status: "success",
+      success: true,
       message: "Login success",
       data: user,
     });
   } catch (error: any) {
     res.status(400).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -121,12 +121,12 @@ const logout = async (req: Request, res: Response) => {
     res.clearCookie("refreshToken");
 
     res.json({
-      status: "success",
+      success: true,
       message: "Logged Out successfully",
     });
   } catch (error: any) {
     res.status(400).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -138,13 +138,13 @@ const getProfile = async (req: Request, res: Response) => {
 
     const profile = await authService.getProfile(user_id);
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Profile fetched successfully",
       data: profile,
     });
   } catch (error: any) {
     res.status(400).json({
-      status: "error",
+      success: false,
       message: "Failed to fetched profile",
       error: error.message,
     });
@@ -168,13 +168,13 @@ const updateProfile = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Profile updated successfully",
       data: updatedProfile,
     });
   } catch (error: any) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "Failed to update profile",
       error: error.message,
     });

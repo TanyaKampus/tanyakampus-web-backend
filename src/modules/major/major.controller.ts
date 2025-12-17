@@ -8,13 +8,13 @@ const createMajor = async (req: Request, res: Response) => {
     const result = await majorService.createMajor(major);
 
     return res.status(201).json({
-      status: "success",
+      success: true,
       message: "Major created successfully",
       data: result,
     });
   } catch (error: any) {
     return res.status(400).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -31,13 +31,13 @@ const getAllMajor = async (req: Request, res: Response) => {
     }
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Data retrieved successfully",
       data,
     });
   } catch (error) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "Internal server error",
     });
   }
@@ -56,15 +56,15 @@ const getMajorById = async (req: Request, res: Response) => {
     const major = await majorService.getMajorById(jurusan_id);
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Data retrieved successfully",
       data: major,
     });
   } catch (error: any) {
     return res.status(500).json({
-        status: "error",
-        message: error.message,
-    })
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -82,13 +82,13 @@ const updateMajor = async (req: Request, res: Response) => {
     const major = await majorService.updateMajor(jurusan_id, data);
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Major successfully updated",
       data: major,
     });
   } catch (error: any) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -113,13 +113,13 @@ const deleteMajor = async (req: Request, res: Response) => {
     }
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Major successfully deleted",
       result,
     });
   } catch (error: any) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }

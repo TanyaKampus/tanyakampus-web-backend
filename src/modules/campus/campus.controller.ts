@@ -5,13 +5,13 @@ const getAllCampus = async (req: Request, res: Response) => {
   try {
     const data = await campusService.getAllCampus();
     return res.status(200).json({
-        status: "success",
-        message: "Data retrieved successfully",
-        data,
+      success: true,
+      message: "Data retrieved successfully",
+      data,
     });
   } catch (error: any) {
     res.status(500).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -36,13 +36,13 @@ const getCampusById = async (req: Request, res: Response) => {
     }
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Data retrieved successfully",
       data: campus,
     });
   } catch (error: any) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -55,13 +55,13 @@ const createCampus = async (req: Request, res: Response) => {
     const result = await campusService.createCampus(campus);
 
     res.status(201).json({
-      status: "success",
+      success: true,
       message: "Campus created successfully",
       data: result,
     });
   } catch (error: any) {
     res.status(500).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -81,13 +81,13 @@ const updateCampus = async (req: Request, res: Response) => {
     const campus = await campusService.updateCampus(kampus_id, data);
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Campus successfully updated",
       data: campus,
     });
   } catch (error: any) {
     return res.status(400).json({
-      status: "error",
+      success: false,
       message: error.message,
     });
   }
@@ -112,12 +112,12 @@ const deleteCampus = async (req: Request, res: Response) => {
     }
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Campus deleted successfully",
     });
   } catch (error) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "Failed to delete campus",
     });
   }
