@@ -21,6 +21,30 @@ enum StatusQuiz {
   ABANDONED
 }
 
+enum TipePertanyaan {
+  BIDANG        // 12 pertanyaan bidang (4 bidang × 3 soal)
+  TIE_BREAKER   // 3 pertanyaan general untuk memecah seri
+}
+
+enum TipeJawaban {
+  YA
+  TIDAK
+}
+
+enum NamaBidang {
+  TEKNIK_DAN_ILMU_KOMPUTER
+  BISNIS_DAN_EKONOMI
+  ILMU_SOSIAL_DAN_POLITIK
+  DESAIN_DAN_SENI
+}
+
+
+enum TieTieBreakerType {
+  EKSTROVERT_INTROVERT    // Pertanyaan 1: Ekstrovert vs Introvert
+  LOGIS_INTUISI           // Pertanyaan 2: Logis vs Intuisi
+  TERSTRUKTUR_BEBAS       // Pertanyaan 3: Terstruktur vs Bebas
+}
+
 // ==================== USER & PROFILE ====================
 model User {
   user_id    String   @id @default(uuid())
@@ -31,7 +55,9 @@ model User {
   updatedAt  DateTime @updatedAt
 
   profile       Profile?
-  favorites     Favorite[]
+  favoriteKampus   FavoriteKampus[]
+  favoriteJurusan  FavoriteJurusan[]
+  favoriteMentor   FavoriteMentor[]
   riwayatQuiz   RiwayatQuiz[]
 
   @@index([email])
@@ -62,22 +88,51 @@ model Mentor {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  favorites Favorite[]
+  favoritMentor FavoriteMentor[]
 }
 
-model Favorite {
-  favorite_id String   @id @default(uuid())
-  user_id     String
-  mentor_id   String
-  createdAt   DateTime @default(now())
+model FavoriteMentor {
+  id        String   @id @default(uuid())
+  user_id   String
+  mentor_id String
+  createdAt DateTime @default(now())
 
   user   User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   mentor Mentor @relation(fields: [mentor_id], references: [mentor_id], onDelete: Cascade)
 
-  @@unique([user_id, mentor_id]) // Prevent duplicate favorites
+  @@unique([user_id, mentor_id])
   @@index([user_id])
   @@index([mentor_id])
 }
+
+model FavoriteJurusan {
+  id        String   @id @default(uuid())
+  user_id   String
+  jurusan_id String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  jurusan Jurusan @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
+
+  @@unique([user_id, jurusan_id])
+  @@index([user_id])
+  @@index([jurusan_id])
+}
+
+model FavoriteKampus {
+  id        String   @id @default(uuid())
+  user_id   String
+  kampus_id String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  kampus Kampus @relation(fields: [kampus_id], references: [kampus_id], onDelete: Cascade)
+
+  @@unique([user_id, kampus_id])
+  @@index([user_id])
+  @@index([kampus_id])
+}
+
 
 // ==================== BIDANG (Interest Area) ====================
 model Bidang {
@@ -87,6 +142,7 @@ model Bidang {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  pertanyaan    Pertanyaan[]
   jawabanBidang JawabanBidang[]
   hasilBidang   HasilBidang[]
   jurusan       Jurusan[]
@@ -109,21 +165,28 @@ model Pertanyaan {
   pertanyaan_id String   @id @default(uuid())
   quiz_id       String
   soal          String   @db.Text
+  tipe          TipePertanyaan  // BIDANG atau TIE_BREAKER
+  bidang_id         String?         // Untuk tipe BIDANG, link ke bidang
+  tiebreaker_type   TieTieBreakerType? // Untuk tipe TIE_BREAKER
+  urutan            Int             // Urutan tampilan (1-15)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   quiz         Quiz          @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
+  bidang       Bidang?       @relation(fields: [bidang_id], references: [bidang_id])
   jawaban      Jawaban[]
   jawabanUsers JawabanUser[]
 
   @@index([quiz_id])
+  @@index([bidang_id])
+  @@index([tipe])
 }
 
 model Jawaban {
   jawaban_id      String   @id @default(uuid())
   pertanyaan_id   String
-  teks_jawaban    String   @db.Text  // ✅ Pisahkan teks dari scoring
-  urutan          Int      // Urutan opsi jawaban (A, B, C, D)
+  tipe_jawaban    TipeJawaban  // YA atau TIDAK
+  nilai         Int          // 1 untuk YA, 0 untuk TIDAK
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -132,14 +195,21 @@ model Jawaban {
   jawabanBidang JawabanBidang[] // ✅ Relasi ke bidang dengan bobot
 
   @@index([pertanyaan_id])
+  @@unique([pertanyaan_id, tipe_jawaban]) // Hanya 2 jawaban per pertanyaan
 }
 
-// ✅ NEW: Junction table untuk scoring jawaban per bidang
+
+// ==================== SCORING SYSTEM ====================
+// Tabel ini memetakan jawaban ke bidang dengan bobot
+// Untuk pertanyaan BIDANG: 1 jawaban = 1 bidang dengan bobot 1
+// Untuk pertanyaan TIE_BREAKER: 1 jawaban bisa mempengaruhi 2+ bidang
+
 model JawabanBidang {
   id         String @id @default(uuid())
   jawaban_id String
   bidang_id  String
-  bobot      Int    // Bobot/skor untuk bidang ini (1-10)
+  bobot             Int     // Bobot untuk bidang ini (biasanya 1)
+  is_tiebreaker     Boolean @default(false) // Flag untuk scoring tie-breaker
 
   jawaban Jawaban @relation(fields: [jawaban_id], references: [jawaban_id], onDelete: Cascade)
   bidang  Bidang  @relation(fields: [bidang_id], references: [bidang_id], onDelete: Cascade)
@@ -175,6 +245,8 @@ model RiwayatQuiz {
   status_quiz    StatusQuiz  @default(IN_PROGRESS)
   tanggal_mulai  DateTime    @default(now())
   tanggal_selesai DateTime?
+  bidang_terpilih String?     // Bidang pemenang setelah scoring
+  used_tiebreaker Boolean     @default(false) // Apakah menggunakan tie-breaker
   total_skor     Int         @default(0)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -196,8 +268,11 @@ model HasilBidang {
   id          String @id @default(uuid())
   riwayat_id  String
   bidang_id   String
-  skor_bidang Int
-  persentase  Float? // Persentase dari total skor
+  skor_bidang Int      // Skor dari 12 pertanyaan bidang (max 3)
+  skor_tiebreaker   Int      @default(0) // Skor tambahan dari tie-breaker
+  skor_total        Int      // skor_bidang + skor_tiebreaker
+  persentase        Float?   // Persentase dari total skor
+  is_winner         Boolean  @default(false) // Bidang pemenang
   createdAt   DateTime @default(now())
 
   riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
@@ -221,8 +296,10 @@ model Jurusan {
   bidang         Bidang?         @relation(fields: [bidang_id], references: [bidang_id])
   jurusanKampus  JurusanKampus[]
   hasilJurusan   HasilJurusan[]
+  favoriteJurusan  FavoriteJurusan[]
 
   @@index([bidang_id])
+  @@index([nama_jurusan])
 }
 
 model JurusanKampus {
@@ -264,6 +341,7 @@ model Kampus {
 
   jurusanKampus JurusanKampus[]
   hasilKampus   HasilKampus[]
+  favoriteKampus FavoriteKampus[]
 }
 
 model HasilKampus {
@@ -271,6 +349,8 @@ model HasilKampus {
   riwayat_id  String
   kampus_id   String
   skor_match  Float? // Skor kecocokan
+  rank        Int    // Ranking rekomendasi
+
 
 
   riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
