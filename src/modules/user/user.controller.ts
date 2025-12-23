@@ -7,13 +7,13 @@ const getProfile = async (req: Request, res: Response) => {
 
     const profile = await authService.getProfile(user_id);
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Profile fetched successfully",
       data: profile,
     });
   } catch (error: any) {
     res.status(404).json({
-      status: "error",
+      success: false,
       message: "Failed to fetched profile",
       error: error.message,
     });
@@ -37,13 +37,13 @@ const updateProfile = async (req: Request, res: Response) => {
     });
 
     return res.status(200).json({
-      status: "success",
+      success: true,
       message: "Profile updated successfully",
       data: updatedProfile,
     });
   } catch (error: any) {
     return res.status(500).json({
-      status: "error",
+      success: false,
       message: "Failed to update profile",
       error: error.message,
     });
