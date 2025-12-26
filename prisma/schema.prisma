@@ -151,7 +151,7 @@ model Bidang {
 // ==================== QUIZ SYSTEM ====================
 model Quiz {
   quiz_id         String   @id @default(uuid())
-  nama_quiz       String
+  nama_quiz       String   @unique
   deskripsi_quiz  String?  @db.Text
   is_active       Boolean  @default(true)
   createdAt       DateTime @default(now())
@@ -286,7 +286,7 @@ model HasilBidang {
 // ==================== JURUSAN & KAMPUS ====================
 model Jurusan {
   jurusan_id     String   @id @default(uuid())
-  nama_jurusan   String
+  nama_jurusan   String   @unique
   deskripsi      String?  @db.Text
   bidang_id      String?  // ✅ Link jurusan ke bidang utama
   icon           String?
@@ -332,7 +332,7 @@ model HasilJurusan {
 
 model Kampus {
   kampus_id        String   @id @default(uuid())
-  nama_kampus      String
+  nama_kampus      String   @unique
   jenis_kampus     String   // Negeri, Swasta, Kedinasan
   deskripsi_kampus String?  @db.Text
   foto_kampus      String?
