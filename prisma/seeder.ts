@@ -6,11 +6,11 @@ const {
 } = require("@prisma/client");
 
 const seedQuiz = async () => {
-  console.log('🌱 Starting quiz seeder...');
+  console.log('Starting quiz seeder...');
 
   try {
     // 1. SEED BIDANG
-    console.log('📚 Seeding Bidang...');
+    console.log('Seeding Bidang...');
     const bidangData = [
       {
         nama_bidang: 'Teknik dan Ilmu Komputer',
@@ -42,7 +42,7 @@ const seedQuiz = async () => {
     }
 
     // 2. SEED JURUSAN
-    console.log('🎓 Seeding Jurusan...');
+    console.log('Seeding Jurusan...');
     const jurusanData = [
       // Teknik dan Ilmu Komputer
       { nama: 'Teknik Geologi', bidang: 'Teknik dan Ilmu Komputer', deskripsi: 'Mempelajari struktur bumi dan pemanfaatan sumber daya alam' },
@@ -111,7 +111,7 @@ const seedQuiz = async () => {
     }
 
     // 3. SEED KAMPUS
-    console.log('🏫 Seeding Kampus...');
+    console.log('Seeding Kampus...');
     const kampusData = [
       {
         nama: 'Universitas Padjadjaran',
@@ -203,11 +203,11 @@ const seedQuiz = async () => {
           });
         }
       }
-      console.log(`   ✓ ${kampus.nama} (${kampus.jurusan.length} jurusan)`);
+      console.log(`${kampus.nama} (${kampus.jurusan.length} jurusan)`);
     }
 
     // 4. SEED QUIZ
-    console.log('📝 Seeding Quiz...');
+    console.log('Seeding Quiz...');
     const quiz = await prisma.quiz.upsert({
       where: { nama_quiz: 'Quiz Penjurusan Kampus' },
       update: {},
@@ -217,10 +217,10 @@ const seedQuiz = async () => {
         is_active: true
       }
     });
-    console.log(`   ✓ Quiz: ${quiz.nama_quiz}`);
+    console.log(`Quiz: ${quiz.nama_quiz}`);
 
     // 5. SEED PERTANYAAN BIDANG (12 pertanyaan)
-    console.log('❓ Seeding Pertanyaan Bidang...');
+    console.log('Seeding Pertanyaan Bidang...');
     const pertanyaanBidang = [
       // Teknik dan Ilmu Komputer (3 soal)
       {
@@ -327,11 +327,11 @@ const seedQuiz = async () => {
         }
       });
 
-      console.log(`   ✓ Soal ${p.urutan}: ${p.soal.substring(0, 50)}...`);
+      console.log(`Soal ${p.urutan}: ${p.soal.substring(0, 50)}...`);
     }
 
     // 6. SEED PERTANYAAN TIEBREAKER (3 pertanyaan)
-    console.log('🔀 Seeding Pertanyaan Tiebreaker...');
+    console.log('Seeding Pertanyaan Tiebreaker...');
     const pertanyaanTiebreaker = [
       {
         soal: 'Kamu merasa lebih berenergi ketika banyak berinteraksi dan ngobrol langsung dengan orang lain dibanding ketika sendirian?',
@@ -415,7 +415,7 @@ const seedQuiz = async () => {
         });
       }
 
-      console.log(`   ✓ Tiebreaker ${p.urutan - 12}: ${p.soal.substring(0, 50)}...`);
+      console.log(`Tiebreaker ${p.urutan - 12}: ${p.soal.substring(0, 50)}...`);
     }
 
     console.log('\n Seeding completed successfully!');
@@ -428,7 +428,7 @@ const seedQuiz = async () => {
     console.log(`   • ${pertanyaanTiebreaker.length} Pertanyaan Tiebreaker`);
 
   } catch (error) {
-    console.error('❌ Error seeding:', error);
+    console.error('Error seeding:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
