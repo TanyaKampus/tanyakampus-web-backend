@@ -2,8 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import authRepository from "../modules/auth/auth.repository";
 
+interface User {
+  user_id: string;
+  email: string;
+  role: string;
+}
+
 export interface AuthenticatedRequest extends Request {
-  user?: Record<string, any>;
+  user?: User;
 }
 const protectRoute = async (
   req: AuthenticatedRequest,
@@ -40,12 +46,12 @@ const protectRoute = async (
       });
     }
 
-   const { password, ...safeUser } = user;
-   req.user = safeUser;
+    const { password, ...safeUser } = user;
+    req.user = safeUser;
 
     next();
   } catch (error: any) {
-    console.error("Auth middleware error", error)
+    console.error("Auth middleware error", error);
 
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({
@@ -59,18 +65,21 @@ const protectRoute = async (
   }
 };
 
-const adminRoute = (req: AuthenticatedRequest, res:Response, next:NextFunction) => {
-    if (req.user && req.user.role === "ADMIN") {
-        next()
-    } else {
-        return res.status(403).json({
-            message: "Access denied - admin only"
-        })
-    }
-}
-
+const adminRoute = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.user && req.user.role === "ADMIN") {
+    next();
+  } else {
+    return res.status(403).json({
+      message: "Access denied - admin only",
+    });
+  }
+};
 
 export default {
-    protectRoute,
-    adminRoute
-}
+  protectRoute,
+  adminRoute,
+};
