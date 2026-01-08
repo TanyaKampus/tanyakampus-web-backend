@@ -24,6 +24,12 @@ router.post(
   quizController.startQuiz
 );
 
+router.get(
+  "/:quiz_id/questions/type",
+  authMiddleware.protectRoute,
+  quizController.getQuestionsByType
+); 
+
 
 
 export default router

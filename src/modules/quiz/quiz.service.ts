@@ -1,3 +1,4 @@
+import { TipePertanyaan } from "@prisma/client";
 import quizRepository from "./quiz.repository";
 
 const createQuiz = async (data: {
@@ -68,6 +69,11 @@ const startQuiz = async (user_id: string, quiz_id: string) => {
   return quiz;
 };
 
+const getQuestionsByType = async (quiz_id: string, tipe: TipePertanyaan) => {
+  if (!quiz_id) throw new Error("Quiz ID is required");
+  return await quizRepository.findQuestionByType(quiz_id, tipe);
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -76,5 +82,6 @@ export default {
   deleteQuiz,
   getActiveQuiz,
   startQuiz,
+  getQuestionsByType
 }
 

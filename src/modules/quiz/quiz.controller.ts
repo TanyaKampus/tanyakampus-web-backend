@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import quizService from "./quiz.service";
+import { AuthenticatedRequest } from "../../middleware/auth";
+import { TipePertanyaan } from "@prisma/client";
 
 const createQuiz = async (req: Request, res: Response) => {
   try {
@@ -201,6 +203,43 @@ const startQuiz = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+const getQuestionsByType = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { quiz_id } = req.params;
+    const { tipe } = req.query
+
+    if (!quiz_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing quiz ID parameter",
+      });
+    }
+
+    if (!tipe) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing type parameter",
+      });
+    }
+
+    const questions = await quizService.getQuestionsByType(
+      quiz_id,
+      tipe as TipePertanyaan
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Questions retrieved successfully",
+      data: questions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -210,5 +249,6 @@ export default {
   getActiveQuiz,
   findQuizById,
   startQuiz,
+  getQuestionsByType,
 };
 

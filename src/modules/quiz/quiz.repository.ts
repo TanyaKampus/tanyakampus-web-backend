@@ -1,4 +1,6 @@
 import prisma from "../../config/prisma";
+import { StatusQuiz, TipePertanyaan } from "@prisma/client"
+
 
 export const getQuizById = async (quiz_id: string) => {
   return await prisma.quiz.findUnique({
@@ -66,6 +68,29 @@ const startQuiz = async (user_id: string, quiz_id: string) => {
   });
 };
 
+
+const findQuestionByType = async (quiz_id: string, tipe: TipePertanyaan) => {
+  return await prisma.pertanyaan.findMany({
+    where: {
+      quiz_id,
+      tipe,
+    },
+    orderBy: { urutan: "asc" },
+
+    include: {
+      jawaban: {
+        orderBy: { tipe_jawaban: "desc" }, 
+        select: {
+          jawaban_id: true,
+          tipe_jawaban: true,
+          nilai: true, 
+        }
+      }
+    }
+  });
+};
+
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -74,5 +99,6 @@ export default {
   deleteQuiz,
   findActiveQuiz,
   startQuiz,
+  findQuestionByType,
 };
 
