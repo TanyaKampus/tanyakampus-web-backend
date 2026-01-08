@@ -140,6 +140,32 @@ const getActiveQuiz = async (req: Request, res: Response) => {
   }
 };
 
+const findQuizById = async (req: Request, res: Response) => {
+  try {
+    const {quiz_id} = req.params;
+
+    if (!quiz_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing quiz ID parameter",
+      });
+    }
+
+    const quiz = await quizService.getQuizById(quiz_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz retrieved successfully",
+      data: quiz,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -147,5 +173,6 @@ export default {
   updateQuiz,
   deleteQuiz,
   getActiveQuiz,
+  findQuizById,
 };
 

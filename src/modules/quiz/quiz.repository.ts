@@ -49,10 +49,17 @@ const findActiveQuiz = async () => {
     where: { is_active: true },
   });
 };
+
+const findQuizById = async (quizId: string) => {
+  return await prisma.quiz.findUnique({
+    where: { quiz_id: quizId },
+  });
+};
+
 export default {
   createQuiz,
   getAllQuiz,
-  getQuizById,
+  findQuizById,
   updateQuiz,
   deleteQuiz,
   findActiveQuiz,

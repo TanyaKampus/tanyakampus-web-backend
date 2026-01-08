@@ -17,6 +17,9 @@ router.get(
   quizController.getActiveQuiz
 );
 
+router.get("/:quiz_id", authMiddleware.protectRoute, quizController.findQuizById);
+
+
 
 
 export default router

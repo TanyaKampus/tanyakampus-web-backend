@@ -16,13 +16,6 @@ const getAllQuiz = async () => {
   return quiz;
 };
 
-const getQuizById = async (quiz_id: string) => {
-  const quiz = await quizRepository.getQuizById(quiz_id);
-
-  if (!quiz) throw new Error("Quiz not found");
-
-  return quiz;
-};
 
 const updateQuiz = async (
   quiz_id: string,
@@ -57,6 +50,12 @@ const getActiveQuiz = async () => {
   return quiz;
 };
 
+const getQuizById = async (quiz_id: string) => {
+  if (!quiz_id) throw new Error("Quiz ID is required");
+  const quiz = await quizRepository.findQuizById(quiz_id);
+  if (!quiz) throw new Error("Quiz not found");
+  return quiz;
+};
 
 export default {
   createQuiz,
