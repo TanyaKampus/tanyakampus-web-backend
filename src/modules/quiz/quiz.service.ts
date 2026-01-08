@@ -57,6 +57,17 @@ const getQuizById = async (quiz_id: string) => {
   return quiz;
 };
 
+const startQuiz = async (user_id: string, quiz_id: string) => {
+  if (!user_id) throw new Error("User ID is required to start quiz");
+  if (!quiz_id) throw new Error("Quiz ID is required to start quiz");
+
+  await getQuizById(quiz_id);
+  const quiz = await quizRepository.startQuiz(user_id, quiz_id);
+  
+  if (!quiz) throw new Error("Failed to start quiz");
+  return quiz;
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -64,5 +75,6 @@ export default {
   updateQuiz,
   deleteQuiz,
   getActiveQuiz,
+  startQuiz,
 }
 

@@ -56,6 +56,16 @@ const findQuizById = async (quizId: string) => {
   });
 };
 
+const startQuiz = async (user_id: string, quiz_id: string) => {
+  return await prisma.riwayatQuiz.create({
+    data: {
+      quiz_id,
+      user_id,
+      status_quiz: StatusQuiz.IN_PROGRESS,
+    },
+  });
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -63,6 +73,6 @@ export default {
   updateQuiz,
   deleteQuiz,
   findActiveQuiz,
-  
+  startQuiz,
 };
 

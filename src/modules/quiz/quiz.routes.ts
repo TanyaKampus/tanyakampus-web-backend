@@ -18,7 +18,11 @@ router.get(
 );
 
 router.get("/:quiz_id", authMiddleware.protectRoute, quizController.findQuizById);
-
+router.post(
+  "/:quiz_id/start",
+  authMiddleware.protectRoute,
+  quizController.startQuiz
+);
 
 
 

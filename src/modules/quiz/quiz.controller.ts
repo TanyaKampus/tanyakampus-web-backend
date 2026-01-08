@@ -166,6 +166,41 @@ const findQuizById = async (req: Request, res: Response) => {
   }
 };
 
+const startQuiz = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {quiz_id} = req.params;
+
+    const user_id = req.user?.user_id;
+
+    if (!quiz_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing quiz ID parameter",
+      });
+    }
+
+    if (!user_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Unauthorized - User not authenticated",
+      });
+    }
+
+    const quiz = await quizService.startQuiz(user_id, quiz_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz started successfully",
+      data: quiz,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -174,5 +209,6 @@ export default {
   deleteQuiz,
   getActiveQuiz,
   findQuizById,
+  startQuiz,
 };
 
