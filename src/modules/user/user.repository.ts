@@ -10,7 +10,12 @@ const findProfileById = async (user_id: string) => {
 
 const updateProfile = async (
   user_id: string,
-  data: { nama: string; jenis_kelamin: string; tanggal_lahir: Date }
+  data: {
+    nama: string;
+    jenis_kelamin: string;
+    tanggal_lahir: Date;
+    foto_profil: string;
+  }
 ) => {
   return await prisma.profile.update({
     where: {
@@ -21,6 +26,6 @@ const updateProfile = async (
 };
 
 export default {
-    findProfileById,
-    updateProfile,
-}
+  findProfileById,
+  updateProfile,
+};

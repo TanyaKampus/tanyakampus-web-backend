@@ -1,11 +1,11 @@
-import authService from "../auth/auth.service";
+import userService from "../user/user.service";
 import { Request, Response } from "express";
 
 const getProfile = async (req: Request, res: Response) => {
   try {
     const user_id = (req as any).user.user_id;
 
-    const profile = await authService.getProfile(user_id);
+    const profile = await userService.getProfile(user_id);
     return res.status(200).json({
       success: true,
       message: "Profile fetched successfully",
@@ -23,34 +23,36 @@ const getProfile = async (req: Request, res: Response) => {
 const updateProfile = async (req: Request, res: Response) => {
   try {
     const user_id = (req as any).user?.user_id;
-
     if (!user_id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
     const { nama, jenis_kelamin, tanggal_lahir } = req.body;
-
-    const updatedProfile = await authService.updateProfile(user_id, {
-      nama,
-      jenis_kelamin,
-      tanggal_lahir: new Date(tanggal_lahir),
+    const foto_profil = req.file ? `src/uploads/${req.file.filename}` : undefined;
+    const updatedProfile = await userService.updateProfile(user_id, {
+      ...(nama && { nama }),
+      ...(jenis_kelamin && { jenis_kelamin }),
+      ...(tanggal_lahir && { tanggal_lahir: new Date(tanggal_lahir) }),
+      ...(foto_profil && { foto_profil }),
     });
-
-    return res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: updatedProfile,
-    });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Profile updated successfully",
+        data: updatedProfile,
+      });
   } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update profile",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to update profile",
+        error: error.message,
+      });
   }
 };
 
 export default {
-    getProfile,
-    updateProfile, 
-}
+  getProfile,
+  updateProfile,
+};
