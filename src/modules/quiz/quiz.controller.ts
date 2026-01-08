@@ -240,6 +240,321 @@ const getQuestionsByType = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+const getQuestionById = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {question_id} = req.params;
+
+    if (!question_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing question ID parameter",
+      });
+    }
+
+    const question = await quizService.getQuestionById(question_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Question retrieved successfully",
+      data: question,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {riwayat_id} = req.params;
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const history = await quizService.getHistoryById(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz history retrieved successfully",
+      data: history,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const submitAnswer = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {riwayat_id} = req.params;
+    const { pertanyaan_id, jawaban_id } = req.body;
+    if (!riwayat_id || !pertanyaan_id || !jawaban_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required parameters",
+      });
+    }
+
+    const result = await quizService.submitAnswer(
+      riwayat_id,
+      pertanyaan_id,
+      jawaban_id
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer submitted successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const countAnswerByHistory = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { riwayat_id } = req.params;
+    const { tipe } = req.query;
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const result = await quizService.countAnswersByHistory(
+      riwayat_id,
+      tipe as TipePertanyaan
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer ",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const calculateFieldScores = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const {riwayat_id} = req.params;
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const result = await quizService.calculateAndSaveFieldResults(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Field scores calculated successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {riwayat_id} = req.params;
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        message: "Missing history ID paramater",
+      });
+    }
+
+    const result = await quizService.getFieldResults(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Field result succesfully retrieved",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const setUsedTieBreaker = async (req: Request, res: Response) => {
+  try {
+    const { riwayat_id } = req.params;
+
+    if(!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter"
+      })
+    }
+    
+    const result = await quizService.setUsedTiebreaker(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Major results calculated successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message
+    })
+
+  }
+};
+
+const completeQuiz = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {riwayat_id} = req.params;
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const result = await quizService.completeQuiz(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz completed successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const abandonQuiz = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const riwayat_id = req.params.id;
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const result = await quizService.abandonQuiz(riwayat_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz abandoned successfully",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+const calculateMajorResults = async (req: Request, res:Response) => {
+  try {
+    const { riwayat_id } = req.params
+    const { bidang_id } = req.body
+
+    if(!bidang_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing field ID parameter"
+      })
+    }
+
+    if(!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter"
+      })
+    }
+
+    const result = await quizService.calculateAndSaveMajorResults(riwayat_id, bidang_id)
+
+    return res.status(200).json({
+      success: true,
+      message: "Major results calculated successfully",
+      data: result
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: (error as Error).message
+    })
+  }
+}
+
+const calculateCampusResults = async (req: Request, res: Response) => {
+  try {
+    const { riwayat_id } = req.params;
+    const { jurusan_ids } = req.body;
+
+    if (!jurusan_ids || !Array.isArray(jurusan_ids) || jurusan_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "jurusan_ids must be a non-empty array",
+      });
+    }
+
+    if (!riwayat_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing history ID parameter",
+      });
+    }
+
+    const result = await quizService.calculateAndSaveCampusResults(riwayat_id, jurusan_ids);
+
+    return res.status(200).json({
+      success: true,
+      message: "Campus results calculated successfully",
+      data: result,
+    });
+  } catch (error) {
+     return res.status(500).json({
+       success: false,
+       message: (error as Error).message,
+     });
+  }
+};
+
 export default {
   createQuiz,
   getAllQuiz,
@@ -250,5 +565,16 @@ export default {
   findQuizById,
   startQuiz,
   getQuestionsByType,
+  getQuestionById,
+  getHistoryById,
+  submitAnswer,
+  countAnswerByHistory,
+  calculateFieldScores,
+  getFieldResults,
+  setUsedTieBreaker,
+  completeQuiz,
+  abandonQuiz,
+  calculateMajorResults,
+  calculateCampusResults,
 };
 
