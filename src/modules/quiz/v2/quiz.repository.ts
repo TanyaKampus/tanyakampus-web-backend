@@ -1,50 +1,7 @@
-import prisma from "../../config/prisma";
-import { StatusQuiz, TipePertanyaan } from "@prisma/client"
+// src/repositories/quiz.repository.ts
+import { PrismaClient, StatusQuiz, TipePertanyaan } from "@prisma/client";
 
-
-export const getQuizById = async (quiz_id: string) => {
-  return await prisma.quiz.findUnique({
-    where: {
-      quiz_id,
-    },
-  });
-};
-
-const getAllQuiz = async () => {
-  return await prisma.quiz.findMany();
-};
-
-const createQuiz = async (data: {
-  nama_quiz: string;
-  deskripsi_quiz?: string;
-  is_active: boolean;
-}) => {
-  return await prisma.quiz.create({
-    data,
-  });
-};
-
-const updateQuiz = async (
-  quiz_id: string,
-  data: {
-    nama_quiz?: string;
-    deskripsi_quiz?: string;
-    is_active?: boolean;
-  }
-) => {
-  return await prisma.quiz.update({
-    where: { quiz_id },
-    data,
-  });
-};
-
-const deleteQuiz = async (quiz_id: string) => {
-  return await prisma.quiz.delete({
-    where: {
-      quiz_id,
-    },
-  });
-};
+const prisma = new PrismaClient();
 
 const findActiveQuiz = async () => {
   return await prisma.quiz.findFirst({
@@ -68,6 +25,22 @@ const startQuiz = async (user_id: string, quiz_id: string) => {
   });
 };
 
+const findAllQuestion = async (quiz_id: string) => {
+  return await prisma.pertanyaan.findMany({
+    where: { quiz_id },
+    orderBy: { urutan: "asc" },
+    include:{
+      jawaban:{ 
+        orderBy:{tipe_jawaban:"desc"},
+        select: {
+          jawaban_id: true,
+          tipe_jawaban: true,
+
+        }
+      }
+    },
+  });
+};
 
 const findQuestionByType = async (quiz_id: string, tipe: TipePertanyaan) => {
   return await prisma.pertanyaan.findMany({
@@ -132,48 +105,33 @@ const submitAnswer = async (
   });
 };
 
-const countAnswersByHistory = async (
-  riwayatId: string,
-  tipe?: TipePertanyaan
-) => {
-  return await prisma.jawabanUser.count({
-    where: {
-      riwayat_id: riwayatId,
-      ...(tipe && {
-        pertanyaan: {
-          tipe: tipe,
-        },
-      }),
-    },
-  });
-};
-
 const findHistoryById = async (riwayat_id: string) => {
+
   return await prisma.riwayatQuiz.findUnique({
     where: { riwayat_id },
     include: {
       hasilJurusan: {
         select: {
-
           jurusan: {
             select: {
               jurusan_id: true,
               nama_jurusan: true,
-            },
-          },
-        },
+            }
+          }
+        }
       },
       hasilKampus: {
+
         select: {
           kampus: {
             select: {
               kampus_id: true,
-              nama_kampus: true,
-            },
-          },
-        },
-      },
-    },
+              nama_kampus: true
+            }
+          }
+        }
+      }
+    }
   });
 };
 
@@ -211,7 +169,6 @@ const findHistoryId = async (riwayat_id: string) => {
             },
           },
         },
-
       },
       hasilKampus: {
         include: {
@@ -225,12 +182,70 @@ const findHistoryId = async (riwayat_id: string) => {
             },
           },
         },
+
       },
     },
   });
 };
 
-const saveFieldResults = async (data: {
+const findUserHistory = async (userId: string, limit: number = 10) => {
+  return await prisma.riwayatQuiz.findMany({
+    where: { user_id: userId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: {
+      riwayat_id: true,
+      status_quiz: true,
+      tanggal_mulai: true,
+      tanggal_selesai: true,
+      quiz: { select: { nama_quiz: true } },
+      bidang_terpilih: true,
+    },
+  });
+};
+
+
+
+const updateRiwayatStatus = async (
+  riwayatId: string,
+  status: StatusQuiz,
+  bidangTerpilih?: string
+) => {
+  return await prisma.riwayatQuiz.update({
+    where: { riwayat_id: riwayatId },
+    data: {
+      status_quiz: status,
+      tanggal_selesai: status === StatusQuiz.COMPLETED ? new Date() : null,
+      bidang_terpilih: bidangTerpilih ?? null,
+      updatedAt: new Date(),
+    },
+  });
+};
+
+const setUsedTieBreaker = async (riwayatId: string) => {
+  return await prisma.riwayatQuiz.update({
+    where: { riwayat_id: riwayatId },
+    data: { used_tiebreaker: true },
+  });
+};
+
+const countJawabanByRiwayat = async (
+  riwayatId: string,
+  tipe?: TipePertanyaan
+) => {
+  return await prisma.jawabanUser.count({
+    where: {
+      riwayat_id: riwayatId,
+      ...(tipe && {
+        pertanyaan: {
+          tipe: tipe,
+        },
+      }),
+    },
+  });
+};
+
+const saveHasilBidang = async (data: {
   riwayat_id: string;
   bidang_id: string;
   skor_bidang: number;
@@ -257,14 +272,7 @@ const saveFieldResults = async (data: {
   });
 };
 
-const findAllFields = async () => {
-  return await prisma.bidang.findMany({
-    orderBy: { nama_bidang: "asc" },
-  });
-};
-
-
-const getFieldResults = async (riwayatId: string) => {
+const getHasilBidang = async (riwayatId: string) => {
   return await prisma.hasilBidang.findMany({
     where: { riwayat_id: riwayatId },
     include: {
@@ -276,30 +284,7 @@ const getFieldResults = async (riwayatId: string) => {
   });
 };
 
-const setUsedTieBreaker = async (riwayatId: string) => {
-  return await prisma.riwayatQuiz.update({
-    where: { riwayat_id: riwayatId },
-    data: { used_tiebreaker: true },
-  });
-};
-
-const updateHistoryStatus = async (
-  riwayatId: string,
-  status: StatusQuiz,
-  bidangTerpilih?: string
-) => {
-  return await prisma.riwayatQuiz.update({
-    where: { riwayat_id: riwayatId },
-    data: {
-      status_quiz: status,
-      tanggal_selesai: status === StatusQuiz.COMPLETED ? new Date() : null,
-      bidang_terpilih: bidangTerpilih ?? null,
-      updatedAt: new Date(),
-    },
-  });
-};
-
-const saveMajorResults = async (data: {
+const saveHasilJurusan = async (data: {
   riwayat_id: string;
   jurusan_id: string;
 }) => {
@@ -312,10 +297,40 @@ const saveMajorResults = async (data: {
     },
     update: {},
     create: data,
+    include: { jurusan: { select: { nama_jurusan: true } } },
   });
 };
 
-const findMajorsByField = async (bidangId: string) => {
+const saveHasilKampus = async (data: {
+  riwayat_id: string;
+  kampus_id: string;
+}) => {
+  return await prisma.hasilKampus.upsert({
+    where: {
+      riwayat_id_kampus_id: {
+        riwayat_id: data.riwayat_id,
+        kampus_id: data.kampus_id,
+      },
+    },
+    update: {},
+    create: data,
+    include: { kampus: { select: { nama_kampus: true } } },
+  });
+};
+
+const findAllBidang = async () => {
+  return await prisma.bidang.findMany({
+    orderBy: { nama_bidang: "asc" },
+  });
+};
+
+const findBidangById = async (bidangId: string) => {
+  return await prisma.bidang.findUnique({
+    where: { bidang_id: bidangId },
+  });
+};
+
+const findJurusanByBidang = async (bidangId: string) => {
   return await prisma.jurusan.findMany({
     where: { bidang_id: bidangId },
     include: {
@@ -328,7 +343,7 @@ const findMajorsByField = async (bidangId: string) => {
   });
 };
 
-const findCampusByMajors = async (jurusanIds: string[]) => {
+const findCampusByJurusan = async (jurusanIds: string[]) => {
   return await prisma.kampus.findMany({
     where: {
       jurusanKampus: {
@@ -354,45 +369,56 @@ const findCampusByMajors = async (jurusanIds: string[]) => {
   });
 };
 
-const saveCampusResults = async (data: {
-  riwayat_id: string;
-  kampus_id: string;
-}) => {
-  return await prisma.hasilKampus.upsert({
-    where: {
-      riwayat_id_kampus_id: {
-        riwayat_id: data.riwayat_id,
-        kampus_id: data.kampus_id,
-      },
-    },
-    update: {},
-    create: data,
-  });
+
+const submitAnswersBatch = async (
+  riwayat_id: string,
+  answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
+) => {
+  return await prisma.$transaction(
+    answers.map(({ pertanyaan_id, jawaban_id }) =>
+      prisma.jawabanUser.upsert({
+        where: {
+          riwayat_id_pertanyaan_id: {
+            riwayat_id,
+            pertanyaan_id,
+          },
+        },
+        update: {
+          jawaban_id,
+          updatedAt: new Date(),
+        },
+        create: {
+          riwayat_id,
+          pertanyaan_id,
+          jawaban_id,
+        },
+      })
+    )
+  );
 };
 
-
 export default {
-  createQuiz,
-  getAllQuiz,
-  findQuizById,
-  updateQuiz,
-  deleteQuiz,
+  submitAnswersBatch,
   findActiveQuiz,
+  findQuizById,
   startQuiz,
+  findAllQuestion,
   findQuestionByType,
   findQuestionById,
   submitAnswer,
-  countAnswersByHistory,
-  findHistoryById,
   findHistoryId,
-  saveFieldResults,
-  findAllFields,
-  getFieldResults,
+  findHistoryById,
+  findUserHistory,
+  updateRiwayatStatus,
   setUsedTieBreaker,
-  updateHistoryStatus,
-  saveMajorResults,
-  findMajorsByField,
-  findCampusByMajors,
-  saveCampusResults,
+  countJawabanByRiwayat,
+  saveHasilBidang,
+  getHasilBidang,
+  saveHasilJurusan,
+  saveHasilKampus,
+  findAllBidang,
+  findBidangById,
+  findJurusanByBidang,
+  findCampusByJurusan,
 };
 

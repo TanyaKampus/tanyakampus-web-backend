@@ -1,23 +1,26 @@
 import express from "express";
-import quizController from "./quiz.controller";
-import authMiddleware from "../../middleware/auth";
+import quizController  from "./quiz.controller";
+import authMiddleware from "../../../middleware/auth";
 
 const router = express.Router();
 
+router.get("/fields", quizController.getAllFields);
+router.get("/fields/:bidang_id", quizController.getFieldById);
+router.get("/fields/:bidang_id/majors", quizController.getMajorsByField);
 
-// router.post("/", quizController.createQuiz)
-// router.get("/", quizController.getAllQuiz)
-// router.get("/:id", quizController.getQuizById)
-// router.patch("/:id", quizController.updateQuiz)
-// router.delete("/:id", quizController.deleteQuiz)
+router.get(
+  "/history/me",
+  authMiddleware.protectRoute,
+  quizController.getUserHistory
+);
 
-// QUIZ 
 router.get(
   "/active",
   authMiddleware.protectRoute,
   quizController.getActiveQuiz
 );
 
+//  QUIZ ROUTES 
 router.get("/:quiz_id", authMiddleware.protectRoute, quizController.findQuizById);
 router.post(
   "/:quiz_id/start",
@@ -25,7 +28,12 @@ router.post(
   quizController.startQuiz
 );
 
-// QUESTIONS
+//  QUESTIONS ROUTES 
+router.get(
+  "/:quiz_id/questions",
+  authMiddleware.protectRoute,
+  quizController.getAllQuestions
+);
 router.get(
   "/:quiz_id/questions/type",
   authMiddleware.protectRoute,
@@ -33,13 +41,20 @@ router.get(
 ); 
 
 
-// HISTORY
+router.get(
+  "/questions/:question_id",
+  authMiddleware.protectRoute,
+  quizController.getQuestionById
+);
+
+//  HISTORY ROUTES 
 router.get(
   "/history/:riwayat_id",
   authMiddleware.protectRoute,
   quizController.getHistoryById
 );
 
+// ANSWER ROUTES 
 router.post(
   "/history/:riwayat_id/answer",
   authMiddleware.protectRoute,
@@ -51,50 +66,52 @@ router.get(
   quizController.countAnswerByHistory
 ); 
 
-// SCORING
+//  SCORING ROUTES 
 router.post(
   "/history/:riwayat_id/calculate",
   authMiddleware.protectRoute,
   quizController.calculateFieldScores
 );
-
 router.get(
   "/history/:riwayat_id/results",
   authMiddleware.protectRoute,
   quizController.getFieldResults
 ); 
 
-// TIEBREAKER 
+//  TIEBREAKER ROUTES 
 router.put(
   "/history/:riwayat_id/tiebreaker",
   authMiddleware.protectRoute,
   quizController.setUsedTieBreaker
 ); 
 
-// COMPLETE/ABANDON 
+// COMPLETE/ABANDON ROUTES 
 router.put(
   "/history/:riwayat_id/complete",
   authMiddleware.protectRoute,
   quizController.completeQuiz
 );
-
 router.put(
   "/history/:riwayat_id/abandon",
   authMiddleware.protectRoute,
   quizController.abandonQuiz
 );
 
-// RECOMMENDATIONS
+// RECOMMENDATIONS ROUTES 
 router.post(
   "/history/:riwayat_id/majors",
   authMiddleware.protectRoute,
   quizController.calculateMajorResults
-);
-
+); 
 router.post(
   "/history/:riwayat_id/campus",
   authMiddleware.protectRoute,
   quizController.calculateCampusResults
 ); 
 
-export default router
+router.post(
+  "/history/:riwayat_id/answer/batch", 
+  authMiddleware.protectRoute,
+  quizController.submitAnswersBatch
+);
+export default router;

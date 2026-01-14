@@ -1,4 +1,4 @@
-const prisma = require("../src/config/prisma.ts").default;
+const prisma = require("../config/prisma.ts").default;
 const {
   TipePertanyaan,
   TipeJawaban,

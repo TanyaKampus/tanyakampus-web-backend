@@ -1,4 +1,4 @@
-import express  from "express";
+import express, { urlencoded }  from "express";
 import dotenv from "dotenv";
 import cookieParser from 'cookie-parser'
 import cors from "cors"
@@ -13,11 +13,12 @@ import fieldRoutes from "./modules/field/field.routes"
 import quizRoutes from "./modules/quiz/quiz.routes"
 import favoriteRoutes from "./modules/favorites/favorite.routes"
 import mentorRoutes from "./modules/mentor/mentor.routes"
-// import quizv2Routes from "./modules/quiz/v2/quiz.routes"
+import quizv2Routes from "./modules/quiz/v2/quiz.routes"
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
@@ -34,7 +35,7 @@ app.use("/api/field", fieldRoutes)
 app.use("/api/quiz", quizRoutes)
 app.use("/api/favorite", favoriteRoutes)
 app.use("/api/mentor", mentorRoutes)
-// app.use("/api/v2/quiz", quizv2Routes)
+app.use("/api/v2/quiz", quizv2Routes)
 
 
 export default app

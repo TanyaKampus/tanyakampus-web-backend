@@ -1,5 +1,3 @@
-// IMPROVED PRISMA SCHEMA - Tanya Kampus
-// Perbaikan struktur database untuk sistem quiz minat & bakat
 
 generator client {
   provider = "prisma-client-js"
@@ -38,11 +36,10 @@ enum NamaBidang {
   DESAIN_DAN_SENI
 }
 
-
 enum TieTieBreakerType {
-  EKSTROVERT_INTROVERT    // Pertanyaan 1: Ekstrovert vs Introvert
-  LOGIS_INTUISI           // Pertanyaan 2: Logis vs Intuisi
-  TERSTRUKTUR_BEBAS       // Pertanyaan 3: Terstruktur vs Bebas
+  EKSTROVERT_INTROVERT    
+  LOGIS_INTUISI          
+  TERSTRUKTUR_BEBAS       
 }
 
 // ==================== USER & PROFILE ====================
@@ -165,10 +162,10 @@ model Pertanyaan {
   pertanyaan_id String   @id @default(uuid())
   quiz_id       String
   soal          String   @db.Text
-  tipe          TipePertanyaan  // BIDANG atau TIE_BREAKER
-  bidang_id         String?         // Untuk tipe BIDANG, link ke bidang
-  tiebreaker_type   TieTieBreakerType? // Untuk tipe TIE_BREAKER
-  urutan            Int             // Urutan tampilan (1-15)
+  tipe          TipePertanyaan  
+  bidang_id         String?         
+  tiebreaker_type   TieTieBreakerType? 
+  urutan            Int             
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -185,14 +182,14 @@ model Pertanyaan {
 model Jawaban {
   jawaban_id      String   @id @default(uuid())
   pertanyaan_id   String
-  tipe_jawaban    TipeJawaban  // YA atau TIDAK
-  nilai         Int          // 1 untuk YA, 0 untuk TIDAK
+  tipe_jawaban    TipeJawaban  
+  nilai         Int          
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   pertanyaan    Pertanyaan      @relation(fields: [pertanyaan_id], references: [pertanyaan_id], onDelete: Cascade)
   jawabanUsers  JawabanUser[]
-  jawabanBidang JawabanBidang[] // ✅ Relasi ke bidang dengan bobot
+  jawabanBidang JawabanBidang[] 
 
   @@index([pertanyaan_id])
   @@unique([pertanyaan_id, tipe_jawaban]) // Hanya 2 jawaban per pertanyaan
@@ -214,14 +211,14 @@ model JawabanBidang {
   jawaban Jawaban @relation(fields: [jawaban_id], references: [jawaban_id], onDelete: Cascade)
   bidang  Bidang  @relation(fields: [bidang_id], references: [bidang_id], onDelete: Cascade)
 
-  @@unique([jawaban_id, bidang_id]) // Satu jawaban hanya punya 1 bobot per bidang
+  @@unique([jawaban_id, bidang_id]) 
   @@index([jawaban_id])
   @@index([bidang_id])
 }
 
 model JawabanUser {
   jwbuser_id    String   @id @default(uuid())
-  riwayat_id    String   // ✅ Link ke riwayat quiz, bukan langsung ke user
+  riwayat_id    String  
   pertanyaan_id String
   jawaban_id    String
   createdAt     DateTime @default(now())
@@ -231,13 +228,11 @@ model JawabanUser {
   pertanyaan Pertanyaan  @relation(fields: [pertanyaan_id], references: [pertanyaan_id], onDelete: Cascade)
   jawaban    Jawaban     @relation(fields: [jawaban_id], references: [jawaban_id], onDelete: Cascade)
 
-  @@unique([riwayat_id, pertanyaan_id]) // Satu pertanyaan hanya bisa dijawab 1x per attempt
-  @@index([riwayat_id])
+  @@unique([riwayat_id, pertanyaan_id]) 
   @@index([pertanyaan_id])
 }
 
 // ==================== HASIL & RIWAYAT ====================
-// ✅ IMPROVED: Gabungkan Hasil dan RiwayatQuiz jadi satu tabel
 model RiwayatQuiz {
   riwayat_id     String      @id @default(uuid())
   user_id        String
@@ -245,9 +240,8 @@ model RiwayatQuiz {
   status_quiz    StatusQuiz  @default(IN_PROGRESS)
   tanggal_mulai  DateTime    @default(now())
   tanggal_selesai DateTime?
-  bidang_terpilih String?     // Bidang pemenang setelah scoring
-  used_tiebreaker Boolean     @default(false) // Apakah menggunakan tie-breaker
-  total_skor     Int         @default(0)
+  bidang_terpilih String?     
+  used_tiebreaker Boolean     @default(false) 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -268,11 +262,11 @@ model HasilBidang {
   id          String @id @default(uuid())
   riwayat_id  String
   bidang_id   String
-  skor_bidang Int      // Skor dari 12 pertanyaan bidang (max 3)
-  skor_tiebreaker   Int      @default(0) // Skor tambahan dari tie-breaker
-  skor_total        Int      // skor_bidang + skor_tiebreaker
-  persentase        Float?   // Persentase dari total skor
-  is_winner         Boolean  @default(false) // Bidang pemenang
+  skor_bidang Int     
+  skor_tiebreaker   Int      @default(0) 
+  skor_total        Int      
+  persentase        Float?   
+  is_winner         Boolean  @default(false) 
   createdAt   DateTime @default(now())
 
   riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
@@ -288,7 +282,7 @@ model Jurusan {
   jurusan_id     String   @id @default(uuid())
   nama_jurusan   String   @unique
   deskripsi      String?  @db.Text
-  bidang_id      String?  // ✅ Link jurusan ke bidang utama
+  bidang_id      String?  
   icon           String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -319,8 +313,7 @@ model HasilJurusan {
   id          String @id @default(uuid())
   riwayat_id  String
   jurusan_id  String
-  skor_match  Float? // Skor kecocokan (0-100)
-  rank        Int?   // Ranking rekomendasi
+
 
   riwayat RiwayatQuiz @relation(fields: [riwayat_id], references: [riwayat_id], onDelete: Cascade)
   jurusan Jurusan     @relation(fields: [jurusan_id], references: [jurusan_id], onDelete: Cascade)
@@ -333,7 +326,7 @@ model HasilJurusan {
 model Kampus {
   kampus_id        String   @id @default(uuid())
   nama_kampus      String   @unique
-  jenis_kampus     String   // Negeri, Swasta, Kedinasan
+  jenis_kampus     String   
   deskripsi_kampus String?  @db.Text
   foto_kampus      String?
   createdAt        DateTime @default(now())
@@ -348,8 +341,7 @@ model HasilKampus {
   id          String @id @default(uuid())
   riwayat_id  String
   kampus_id   String
-  skor_match  Float? // Skor kecocokan
-  rank        Int    // Ranking rekomendasi
+ 
 
 
 

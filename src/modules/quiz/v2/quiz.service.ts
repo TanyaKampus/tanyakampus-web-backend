@@ -1,50 +1,7 @@
 import { StatusQuiz, TipePertanyaan } from "@prisma/client";
 import quizRepository from "./quiz.repository";
 
-const createQuiz = async (data: {
-  nama_quiz: string;
-  deskripsi_quiz?: string;
-  is_active: boolean;
-}) => {
-  return await quizRepository.createQuiz(data);
-};
-
-const getAllQuiz = async () => {
-  const quiz = await quizRepository.getAllQuiz();
-
-  if (!quiz) throw new Error("Quiz not found");
-
-  return quiz;
-};
-
-
-const updateQuiz = async (
-  quiz_id: string,
-  data: {
-    nama_quiz?: string;
-    deskripsi_quiz?: string;
-    is_active?: boolean;
-  }
-) => {
-  const quiz = await quizRepository.updateQuiz(quiz_id, data);
-
-  if (!quiz) {
-    throw new Error("Quiz not found");
-  }
-
-  return quiz
-};
-
-const deleteQuiz = async (quiz_id: string) => {
-  const quiz = await quizRepository.deleteQuiz(quiz_id);
-
-  if (!quiz) {
-    throw new Error("Quiz not found");
-  }
-
-  return quiz;
-};
-
+// ==================== QUIZ ====================
 const getActiveQuiz = async () => {
   const quiz = await quizRepository.findActiveQuiz();
   if (!quiz) throw new Error("No active quiz found");
@@ -69,18 +26,7 @@ const startQuiz = async (user_id: string, quiz_id: string) => {
   return quiz;
 };
 
-const getQuestionsByType = async (quiz_id: string, tipe: TipePertanyaan) => {
-  if (!quiz_id) throw new Error("Quiz ID is required");
-  return await quizRepository.findQuestionByType(quiz_id, tipe);
-};
-
-const getQuestionById = async (question_id: string) => {
-  if (!question_id) throw new Error("Question ID is required");
-  const question = await quizRepository.findQuestionById(question_id);
-  if (!question) throw new Error("Question not found");
-  return question;
-};
-
+// ==================== HISTORY ====================
 const getHistoryById = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required");
   const history = await quizRepository.findHistoryById(riwayat_id);
@@ -95,6 +41,38 @@ const getHistoryId = async (riwayat_id: string) => {
   return history;
 };
 
+const getUserHistory = async (user_id: string, limit: number = 10) => {
+  const history = await quizRepository.findUserHistory(user_id, limit);
+  if (!history || history.length === 0) {
+    console.log(`No quiz history found for user: ${user_id}`);
+    return [];
+  }
+  return history;
+};
+
+// ==================== QUESTIONS ====================
+const getAllQuestions = async (quiz_id: string) => {
+  if (!quiz_id) throw new Error("Quiz ID is required to fetch questions");
+  const questions = await quizRepository.findAllQuestion(quiz_id);
+  if (!questions || questions.length === 0) {
+    throw new Error("No questions found for this quiz");
+  }
+  return questions;
+};
+
+const getQuestionsByType = async (quizId: string, tipe: TipePertanyaan) => {
+  if (!quizId) throw new Error("Quiz ID is required");
+  return await quizRepository.findQuestionByType(quizId, tipe);
+};
+
+const getQuestionById = async (question_id: string) => {
+  if (!question_id) throw new Error("Question ID is required");
+  const question = await quizRepository.findQuestionById(question_id);
+  if (!question) throw new Error("Question not found");
+  return question;
+};
+
+// ==================== ANSWERS ====================
 const submitAnswer = async (
   riwayat_id: string,
   pertanyaan_id: string,
@@ -123,9 +101,10 @@ const countAnswersByHistory = async (
   tipe?: TipePertanyaan
 ) => {
   if (!riwayat_id) throw new Error("History ID is required to count answers");
-  return await quizRepository.countAnswersByHistory(riwayat_id, tipe);
+  return await quizRepository.countJawabanByRiwayat(riwayat_id, tipe);
 };
 
+// ==================== SCORING ====================
 type BidangGabungan =
   | "TEKNIK_DAN_KOMPUTER"
   | "BISNIS_DAN_EKONOMI"
@@ -140,13 +119,14 @@ type SkorBidang = {
   skor_total: number;
 };
 
+//  FIX 1: Dynamic bidang loading
 const calculateAndSaveFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id)
     throw new Error("History ID is required to calculate field results");
 
   const history = await getHistoryId(riwayat_id);
 
-  const allBidang = await quizRepository.findAllFields();
+  const allBidang = await quizRepository.findAllBidang();
 
   const scores: SkorBidang[] = allBidang.map((bidang) => ({
     bidang_id: bidang.bidang_id,
@@ -247,7 +227,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
   // Save results
   const saved = await Promise.all(
     hasil.map((skor: any) =>
-      quizRepository.saveFieldResults({
+      quizRepository.saveHasilBidang({
         riwayat_id: riwayat_id,
         bidang_id: skor.bidang_id,
         skor_bidang: skor.skor_main,
@@ -259,30 +239,35 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     )
   );
 
+  // 👇 FIX: Return berdasarkan final tie, bukan initial tie
   return {
-    hasTie: finalTie, 
-    needsTiebreaker: finalTie && !history.used_tiebreaker, 
+    hasTie: finalTie, // ✅ Gunakan finalTie
+    needsTiebreaker: finalTie && !history.used_tiebreaker, // ✅ Cek final tie
     data: saved,
   };
 };
 
+//  NEW: Get field results
 const getFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to get field results");
-  return await quizRepository.getFieldResults(riwayat_id);
+  return await quizRepository.getHasilBidang(riwayat_id);
 };
 
+// ==================== TIEBREAKER ====================
+//  NEW: Set tiebreaker used
 const setUsedTiebreaker = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to set tiebreaker");
   return await quizRepository.setUsedTieBreaker(riwayat_id);
 };
 
+// ==================== COMPLETE QUIZ ====================
 const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
   if (!riwayat_id) throw new Error("History ID is required to complete quiz");
  let finalBidang = bidangTerpilih;
 
  if (!finalBidang) {
    // Get hasil bidang
-   const hasilBidang = await quizRepository.getFieldResults(riwayat_id);
+   const hasilBidang = await quizRepository.getHasilBidang(riwayat_id);
 
    // Find winner
    const winner = hasilBidang.find((h) => h.is_winner);
@@ -292,7 +277,7 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
    }
  }
 
- return await quizRepository.updateHistoryStatus(
+ return await quizRepository.updateRiwayatStatus(
    riwayat_id,
    StatusQuiz.COMPLETED,
    finalBidang
@@ -301,63 +286,138 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
 
 const abandonQuiz = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to abandon quiz");
-  return await quizRepository.updateHistoryStatus(
+  return await quizRepository.updateRiwayatStatus(
     riwayat_id,
     StatusQuiz.ABANDONED
   );
 };
 
+// ==================== RECOMMENDATIONS ====================
+// 👇 NEW: Calculate major results
 const calculateAndSaveMajorResults = async (riwayat_id: string, bidang_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to calculate major results");
   if (!bidang_id) throw new Error("Field ID is required to calculate major results");
   
-  const jurusanList = await quizRepository.findMajorsByField(bidang_id);
+  const jurusanList = await quizRepository.findJurusanByBidang(bidang_id);
   
   const ranked = jurusanList.map((item, index) => ({
     riwayat_id: riwayat_id,
     jurusan_id: item.jurusan_id,
-
   }));
   
-  return await Promise.all(ranked.map(data => quizRepository.saveMajorResults(data)));
+  return await Promise.all(ranked.map(data => quizRepository.saveHasilJurusan(data)));
 };
 
+// 👇 NEW: Calculate campus results
 const calculateAndSaveCampusResults = async (riwayat_id: string, jurusan_ids: string[]) => {
   if (!riwayat_id) throw new Error("History ID is required to calculate campus results");
   if (!jurusan_ids || jurusan_ids.length === 0) throw new Error("Major IDs cannot be empty");
   
-  const kampusList = await quizRepository.findCampusByMajors(jurusan_ids);
+  const kampusList = await quizRepository.findCampusByJurusan(jurusan_ids);
   
   const ranked = kampusList.map((item, index) => ({
     riwayat_id: riwayat_id,
     kampus_id: item.kampus_id,
-    skor_match: 100 - (index * 5),
-    rank: index + 1
   }));
   
-  return await Promise.all(ranked.map(data => quizRepository.saveCampusResults(data)));
+  return await Promise.all(ranked.map(data => quizRepository.saveHasilKampus(data)));
 };
 
+// ==================== FIELDS ====================
+//  NEW: Get all fields
+const getAllFields = async () => {
+  return await quizRepository.findAllBidang();
+};
+
+//  NEW: Get field by ID
+const getFieldById = async (bidang_id: string) => {
+  if (!bidang_id) throw new Error("Field ID is required");
+  const bidang = await quizRepository.findBidangById(bidang_id);
+  if (!bidang) throw new Error("Field not found");
+  return bidang;
+};
+
+//  NEW: Get majors by field
+const getMajorsByField = async (bidang_id: string) => {
+  if (!bidang_id) throw new Error("Field ID is required to get majors");
+  return await quizRepository.findJurusanByBidang(bidang_id);
+};
+
+const submitAnswersBatch = async (
+  user_id: string,
+  riwayat_id: string,
+  answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
+) => {
+  // Validate history
+  const history = await getHistoryById(riwayat_id);
+  
+  if (history.user_id !== user_id) {
+    throw new Error("You are not authorized to submit answers for this quiz");
+  }
+
+  if (history.status_quiz !== "IN_PROGRESS") {
+    throw new Error("Cannot submit answers to a completed quiz");
+  }
+
+  // Validate all questions belong to this quiz
+  const questions = await getAllQuestions(history.quiz_id);
+  const validQuestionIds = questions.map(q => q.pertanyaan_id);
+  
+  const invalidAnswers = answers.filter(
+    a => !validQuestionIds.includes(a.pertanyaan_id)
+  );
+  
+  if (invalidAnswers.length > 0) {
+    throw new Error("Some questions do not belong to this quiz");
+  }
+
+  // Submit batch
+  const result = await quizRepository.submitAnswersBatch(riwayat_id, answers);
+  
+  return {
+    success: true,
+    submitted: result.length,
+    data: result
+  };
+};
 
 export default {
-  createQuiz,
-  getAllQuiz,
-  getQuizById,
-  updateQuiz,
-  deleteQuiz,
+  submitAnswersBatch,
+  // Quiz
   getActiveQuiz,
+  getQuizById,
   startQuiz,
+  
+  // History
+  getUserHistory,
+  getHistoryById,
+  
+  // Questions
+  getAllQuestions,
   getQuestionsByType,
   getQuestionById,
-  getHistoryById,
+  
+  // Answers
   submitAnswer,
   countAnswersByHistory,
+  
+  // Scoring
   calculateAndSaveFieldResults,
-  getFieldResults,
-  setUsedTiebreaker,
+  getFieldResults,             //  NEW
+  
+  // Tiebreaker
+  setUsedTiebreaker,           //  NEW
+  
+  // Complete
   completeQuiz,
   abandonQuiz,
-  calculateAndSaveMajorResults,
-  calculateAndSaveCampusResults,
-}
-
+  
+  // Recommendations
+  calculateAndSaveMajorResults,    //  NEW
+  calculateAndSaveCampusResults,   // NEW
+  
+  // Fields
+  getAllFields,                //  NEW
+  getFieldById,                //  NEW
+  getMajorsByField,            //  NEW
+};
