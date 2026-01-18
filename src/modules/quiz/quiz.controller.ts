@@ -470,7 +470,7 @@ const completeQuiz = async (req: AuthenticatedRequest, res: Response) => {
 
 const abandonQuiz = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const riwayat_id = req.params.id;
+    const {riwayat_id} = req.params;
 
     if (!riwayat_id) {
       return res.status(400).json({
