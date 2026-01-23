@@ -58,6 +58,15 @@ const createCampus = async (data: {
     jenis_kampus: data.jenis_kampus,
   };
 
+  if (data.akreditasi !== undefined) {
+    campusData.akreditasi = data.akreditasi;
+  }
+
+  if (data.alamat_kampus !== undefined) {
+    campusData.alamat_kampus = data.alamat_kampus;
+  }
+
+
   if (data.deskripsi_kampus !== undefined) {
     campusData.deskripsi_kampus = data.deskripsi_kampus;
   }
