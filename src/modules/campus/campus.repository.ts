@@ -53,13 +53,11 @@ const createCampus = async (data: {
   foto_kampus?: string;
   jurusan_ids?: string[];
 }) => {
-  // Prepare data untuk Prisma
   const campusData: any = {
     nama_kampus: data.nama_kampus,
     jenis_kampus: data.jenis_kampus,
   };
 
-  // Hanya tambahkan field jika ada value
   if (data.deskripsi_kampus !== undefined) {
     campusData.deskripsi_kampus = data.deskripsi_kampus;
   }
@@ -68,7 +66,6 @@ const createCampus = async (data: {
     campusData.foto_kampus = data.foto_kampus;
   }
 
-  // Tambahkan relasi jurusan jika ada
   if (data.jurusan_ids && data.jurusan_ids.length > 0) {
     campusData.jurusanKampus = {
       create: data.jurusan_ids.map((jurusan_id) => ({

@@ -192,14 +192,11 @@ model Jawaban {
   jawabanBidang JawabanBidang[] 
 
   @@index([pertanyaan_id])
-  @@unique([pertanyaan_id, tipe_jawaban]) // Hanya 2 jawaban per pertanyaan
+  @@unique([pertanyaan_id, tipe_jawaban]) 
 }
 
 
 // ==================== SCORING SYSTEM ====================
-// Tabel ini memetakan jawaban ke bidang dengan bobot
-// Untuk pertanyaan BIDANG: 1 jawaban = 1 bidang dengan bobot 1
-// Untuk pertanyaan TIE_BREAKER: 1 jawaban bisa mempengaruhi 2+ bidang
 
 model JawabanBidang {
   id         String @id @default(uuid())
