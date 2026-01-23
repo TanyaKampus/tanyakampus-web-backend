@@ -328,6 +328,8 @@ model Kampus {
   nama_kampus      String   @unique
   jenis_kampus     String   
   deskripsi_kampus String?  @db.Text
+  akreditasi       String?
+  alamat_kampus    String?
   foto_kampus      String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
