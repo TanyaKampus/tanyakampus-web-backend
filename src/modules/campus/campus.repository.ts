@@ -36,6 +36,8 @@ const getAllCampus = async () => {
       kampus_id: true,
       nama_kampus: true,
       jenis_kampus: true,
+      akreditasi: true,
+      alamat_kampus: true,
       deskripsi_kampus: true,
       foto_kampus: true,
     },
@@ -46,6 +48,8 @@ const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
   deskripsi_kampus?: string;
+  akreditasi?: string;
+  alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids?: string[];
 }) => {

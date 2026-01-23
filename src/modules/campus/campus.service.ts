@@ -1,6 +1,5 @@
 import campusRepository from "./campus.repository";
 import majorRepository from "../major/major.repository";
-import { log } from "console";
 
 const getAllCampus = async () => {
   const campusList = await campusRepository.getAllCampus();
@@ -22,6 +21,8 @@ const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
   deskripsi_kampus?: string;
+  akreditasi?: string;
+  alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids: string[];
 }) => {
@@ -57,6 +58,8 @@ const updateCampus = async (
     nama_kampus: string; 
     jenis_kampus: string;
     deskripsi_kampus: string;
+    akreditasi?: string;
+    alamat_kampus?: string;
     foto_kampus?: string;
   }
 ) => {
