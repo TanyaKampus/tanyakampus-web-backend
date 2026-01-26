@@ -22,6 +22,10 @@ const createCampus = async (data: {
   jenis_kampus: string;
   deskripsi_kampus?: string;
   akreditasi?: string;
+  maps_url: string;
+  instagram: string;
+  website: string;
+  no_telepon: string;
   alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids: string[];
@@ -39,7 +43,6 @@ const createCampus = async (data: {
   if (data.jurusan_ids && data.jurusan_ids.length > 0) {
     const majorsExist = await majorRepository.findManyMajorsById(data.jurusan_ids);
    
-    // console.log(majorsExist);
     
     if (majorsExist.length !== data.jurusan_ids.length) {
       throw new Error("Some majors not found");

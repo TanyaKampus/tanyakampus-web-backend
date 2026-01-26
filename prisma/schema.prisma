@@ -323,10 +323,15 @@ model HasilJurusan {
 model Kampus {
   kampus_id        String   @id @default(uuid())
   nama_kampus      String   @unique
-  jenis_kampus     String   
+  jenis_kampus     String
+  logo_kampus      String?   
   deskripsi_kampus String?  @db.Text
   akreditasi       String?
   alamat_kampus    String?
+  maps_url         String?
+  instagram        String?
+  website          String?
+  no_telepon       String?
   foto_kampus      String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

@@ -27,9 +27,6 @@ const getCampusById = async (kampus_id: string) => {
   };
 };
 
-
-
-
 const getAllCampus = async () => {
   return prisma.kampus.findMany({
     select: {
@@ -38,6 +35,10 @@ const getAllCampus = async () => {
       jenis_kampus: true,
       akreditasi: true,
       alamat_kampus: true,
+      maps_url: true,
+      instagram: true,
+      website: true,
+      no_telepon: true,
       deskripsi_kampus: true,
       foto_kampus: true,
     },
@@ -49,6 +50,10 @@ const createCampus = async (data: {
   jenis_kampus: string;
   deskripsi_kampus?: string;
   akreditasi?: string;
+  maps_url: string;
+  instagram: string;
+  website: string;
+  no_telepon: string;
   alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids?: string[];
@@ -65,7 +70,6 @@ const createCampus = async (data: {
   if (data.alamat_kampus !== undefined) {
     campusData.alamat_kampus = data.alamat_kampus;
   }
-
 
   if (data.deskripsi_kampus !== undefined) {
     campusData.deskripsi_kampus = data.deskripsi_kampus;
@@ -113,16 +117,15 @@ const updateCampus = async (kampus_id: string, data: any) => {
     where: {
       kampus_id,
     },
-    data
-  })
-}
+    data,
+  });
+};
 
-const deleteCampus = async(kampus_id: string) => {
+const deleteCampus = async (kampus_id: string) => {
   return prisma.kampus.delete({
-    where: {kampus_id}
-  })
-}
-
+    where: { kampus_id },
+  });
+};
 
 export default {
   getAllCampus,
