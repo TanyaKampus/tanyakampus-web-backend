@@ -17,6 +17,7 @@ const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
   deskripsi_kampus?: string;
+  logo_kampus: string;
   akreditasi?: string;
   maps_url: string;
   instagram: string;

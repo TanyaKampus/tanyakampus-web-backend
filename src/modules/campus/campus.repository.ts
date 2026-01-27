@@ -27,11 +27,44 @@ const getCampusById = async (kampus_id: string) => {
   };
 };
 
-const getAllCampus = async (page: number, limit: number) => { const skip = (page - 1) * limit; const campusList = await prisma.kampus.findMany({ skip, take: limit, select: { kampus_id: true, nama_kampus: true, jenis_kampus: true, akreditasi: true, alamat_kampus: true, maps_url: true, instagram: true, website: true, no_telepon: true, deskripsi_kampus: true, foto_kampus: true, }, }); const total = await prisma.kampus.count(); return { data: campusList, meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPrevPage: page > 1, }, }; };
+const getAllCampus = async (page: number, limit: number) => {
+  const skip = (page - 1) * limit;
+  const campusList = await prisma.kampus.findMany({
+    skip,
+    take: limit,
+    select: {
+      kampus_id: true,
+      nama_kampus: true,
+      jenis_kampus: true,
+      logo_kampus: true,
+      akreditasi: true,
+      alamat_kampus: true,
+      maps_url: true,
+      instagram: true,
+      website: true,
+      no_telepon: true,
+      deskripsi_kampus: true,
+      foto_kampus: true,
+    },
+  });
+  const total = await prisma.kampus.count();
+  return {
+    data: campusList,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPrevPage: page > 1,
+    },
+  };
+};
 
 const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
+  logo_kampus: string;
   deskripsi_kampus?: string;
   akreditasi?: string;
   maps_url: string;
@@ -88,7 +121,6 @@ const createCampus = async (data: {
     },
   });
 
-  // Transform response
   const { jurusanKampus, ...rest } = campus;
   return {
     ...rest,
