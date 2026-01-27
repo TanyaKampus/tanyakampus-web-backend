@@ -1,9 +1,9 @@
 import prisma from "../../config/prisma";
 
 const createMajor = async (data: {
-  nama_jurusan: string,
-  deskripsi: string,
-  bidang_id: string
+  nama_jurusan: string;
+  deskripsi: string;
+  bidang_id: string;
 }) => {
   return prisma.jurusan.create({
     data: {
@@ -19,21 +19,31 @@ const createMajor = async (data: {
   });
 };
 
-const getAllMajor = async () => {
-  return prisma.jurusan.findMany({
+const getAllMajor = async (page: number, limit: number) => {
+  const skip = (page - 1) * limit;
+  const majors = await prisma.jurusan.findMany({
+    skip,
+    take: limit,
     select: {
       jurusan_id: true,
       nama_jurusan: true,
       deskripsi: true,
       icon: true,
-      bidang: {
-        select: {
-          bidang_id: true,
-          nama_bidang: true
-        }
-      }
-    }
+      bidang: { select: { bidang_id: true, nama_bidang: true } },
+    },
   });
+  const total = await prisma.jurusan.count();
+  return {
+    data: majors,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPrevPage: page > 1,
+    },
+  };
 };
 
 const getMajorById = async (jurusan_id: string) => {
@@ -58,21 +68,21 @@ const getMajorById = async (jurusan_id: string) => {
 };
 
 const updateMajor = async (jurusan_id: string, data: any) => {
-    return await prisma.jurusan.update({
-        where: {
-            jurusan_id,
-        },
-        data
-    })
-}
+  return await prisma.jurusan.update({
+    where: {
+      jurusan_id,
+    },
+    data,
+  });
+};
 
 const deleteMajor = async (jurusan_id: string) => {
-    return await prisma.jurusan.delete({
-        where: {
-            jurusan_id
-        }
-    })
-}
+  return await prisma.jurusan.delete({
+    where: {
+      jurusan_id,
+    },
+  });
+};
 
 const findManyMajorsById = async (jurusan_ids: string[]) => {
   return await prisma.jurusan.findMany({

@@ -10,8 +10,8 @@ const createMajor = async (data: {
     return result
 }
 
-const getAllMajor = async () => {
-    const majorList = await majorRepository.getAllMajor()
+const getAllMajor = async (page: number, limit: number) => {
+    const majorList = await majorRepository.getAllMajor(page, limit)
 
     if(!majorList) throw new Error("Major not found")
 

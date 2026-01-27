@@ -3,23 +3,26 @@ import { Request, Response } from "express";
 
 const getAllCampus = async (req: Request, res: Response) => {
   try {
-    const data = await campusService.getAllCampus();
-    return res.status(200).json({
-      success: true,
-      message: "Data retrieved successfully",
-      data,
-    });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 6;
+
+    const result = await campusService.getAllCampus(page, limit);
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Data retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+      });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 const getCampusById = async (req: Request, res: Response) => {
   try {
-    const  kampus_id = req.params.id;
+    const kampus_id = req.params.id;
 
     if (!kampus_id) {
       return res.status(400).json({
@@ -69,7 +72,7 @@ const createCampus = async (req: Request, res: Response) => {
 
 const updateCampus = async (req: Request, res: Response) => {
   try {
-    const  kampus_id  = req.params.id;
+    const kampus_id = req.params.id;
     const data = req.body;
 
     if (!kampus_id) {
@@ -95,7 +98,7 @@ const updateCampus = async (req: Request, res: Response) => {
 
 const deleteCampus = async (req: Request, res: Response) => {
   try {
-    const  kampus_id  = req.params.id;
+    const kampus_id = req.params.id;
 
     if (!kampus_id) {
       return res.status(400).json({
