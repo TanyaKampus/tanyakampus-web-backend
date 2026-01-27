@@ -80,6 +80,7 @@ model Mentor {
   mentor_id    String   @id @default(uuid())
   nama_mentor  String
   pendidikan   String
+  logo_kampus  String
   keahlian     String
   foto_mentor  String?
   createdAt    DateTime @default(now())
