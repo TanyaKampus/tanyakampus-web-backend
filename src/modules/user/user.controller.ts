@@ -1,6 +1,5 @@
 import userService from "./user.service";
 import { Request, Response } from "express";
-import { Prisma } from "@prisma/client";
 
 const getProfile = async (req: Request, res: Response) => {
   try {
@@ -33,27 +32,21 @@ const updateProfile = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log("req.body:", req.body);
+    // field text dari FormData
+    const { nama, jenis_kelamin, tanggal_lahir, no_telepon, asal_sekolah } = req.body;
 
-    const {
-      nama,
-      jenis_kelamin,
-      tanggal_lahir,
-      foto_profil,
-      no_telepon,
-      asal_sekolah,
-    } = req.body;
+    // file dari FormData
+    const foto_profil = req.file ? req.file.filename : undefined;
 
     const updateData: any = {
       ...(nama && { nama }),
       ...(jenis_kelamin && { jenis_kelamin }),
-      ...(tanggal_lahir &&
-        !isNaN(new Date(tanggal_lahir).getTime()) && {
-          tanggal_lahir: new Date(tanggal_lahir),
-        }),
-      ...(foto_profil && { foto_profil }),
+      ...(tanggal_lahir && !isNaN(new Date(tanggal_lahir).getTime()) && {
+        tanggal_lahir: new Date(tanggal_lahir),
+      }),
       ...(no_telepon && { no_telepon }),
       ...(asal_sekolah && { asal_sekolah }),
+      ...(foto_profil && { foto_profil }),
     };
 
     const updatedProfile = await userService.updateProfile(user_id, updateData);
@@ -64,14 +57,6 @@ const updateProfile = async (req: Request, res: Response) => {
       data: updatedProfile,
     });
   } catch (error: any) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid request data",
-        error: error.message,
-      });
-    }
-
     return res.status(500).json({
       success: false,
       message: "Failed to update profile",
