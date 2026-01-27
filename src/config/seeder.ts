@@ -348,10 +348,9 @@ const seedQuiz = async () => {
           "Sastra Inggris",
         ],
         logo_kampus:
-          "https://res.cloudinary.com/dejjal27w/image/upload/v1769440143/logounpad-removebg-preview_dor1a4.png",
+          "https://res.cloudinary.com/dejjal27w/image/upload/v1769517193/logounpad-removebg-preview_gorg7p.png",
         foto_kampus:
           "https://res.cloudinary.com/dejjal27w/image/upload/v1769188367/unpad_c0v7up.jpg",
-
         akreditasi: "A",
         alamat_kampus:
           "Jl. Raya Bandung Sumedang KM.21, Hegarmanah, Kec. Jatinangor, Kabupaten Sumedang, Jawa Barat 45363",
@@ -453,7 +452,7 @@ const seedQuiz = async () => {
           "https://www.google.com/maps?q=Telkom+University&output=embed",
         website: "https://www.telkomuniversity.ac.id/",
         instagram: "https://www.instagram.com/telkomuniversity/",
-        no_telepon: "(022) 7564108"
+        no_telepon: "(022) 7564108",
       },
       {
         nama: "Bina Nusantara University",
