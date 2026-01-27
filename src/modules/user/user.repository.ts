@@ -15,6 +15,8 @@ const updateProfile = async (
     jenis_kelamin: string;
     tanggal_lahir: Date;
     foto_profil: string;
+    no_telepon: string;
+    asal_sekolah: string
   }
 ) => {
   return await prisma.profile.update({

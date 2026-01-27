@@ -33,14 +33,18 @@ const updateProfile = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { nama, jenis_kelamin, tanggal_lahir, foto_profil } = req.body;
+    const { nama, jenis_kelamin, tanggal_lahir, foto_profil, no_telepon, asal_sekolah } = req.body;
 
-    const updatedProfile = await userService.updateProfile(user_id, {
-      nama,
-      jenis_kelamin,
-      tanggal_lahir: new Date(tanggal_lahir),
-      foto_profil,
-    });
+    const updateData: any = {
+      ...(nama && { nama }),
+      ...(jenis_kelamin && { jenis_kelamin }),
+      ...(tanggal_lahir && !isNaN(new Date(tanggal_lahir).getTime()) && { tanggal_lahir: new Date(tanggal_lahir) }),
+      ...(foto_profil && { foto_profil }),
+      ...(no_telepon && { no_telepon }),
+      ...(asal_sekolah && { asal_sekolah }),
+    };
+
+    const updatedProfile = await userService.updateProfile(user_id, updateData);
 
     return res.status(200).json({
       success: true,

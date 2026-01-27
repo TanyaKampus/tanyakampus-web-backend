@@ -16,6 +16,8 @@ const updateProfile = async (
     jenis_kelamin: string;
     tanggal_lahir: Date;
     foto_profil: string
+    no_telepon: string
+    asal_sekolah: string
   }
 ) => {
   const existingProfile = await authRepository.findProfileById(user_id);
