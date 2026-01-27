@@ -1,5 +1,6 @@
 import userService from "./user.service";
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 
 const getProfile = async (req: Request, res: Response) => {
   try {
@@ -28,19 +29,28 @@ const getProfile = async (req: Request, res: Response) => {
 const updateProfile = async (req: Request, res: Response) => {
   try {
     const user_id = (req as any).user?.user_id;
-
     if (!user_id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    console.log(req.body);
+    console.log("req.body:", req.body);
 
-    const { nama, jenis_kelamin, tanggal_lahir, foto_profil, no_telepon, asal_sekolah } = req.body;
+    const {
+      nama,
+      jenis_kelamin,
+      tanggal_lahir,
+      foto_profil,
+      no_telepon,
+      asal_sekolah,
+    } = req.body;
 
     const updateData: any = {
       ...(nama && { nama }),
       ...(jenis_kelamin && { jenis_kelamin }),
-      ...(tanggal_lahir && !isNaN(new Date(tanggal_lahir).getTime()) && { tanggal_lahir: new Date(tanggal_lahir) }),
+      ...(tanggal_lahir &&
+        !isNaN(new Date(tanggal_lahir).getTime()) && {
+          tanggal_lahir: new Date(tanggal_lahir),
+        }),
       ...(foto_profil && { foto_profil }),
       ...(no_telepon && { no_telepon }),
       ...(asal_sekolah && { asal_sekolah }),
@@ -54,6 +64,14 @@ const updateProfile = async (req: Request, res: Response) => {
       data: updatedProfile,
     });
   } catch (error: any) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request data",
+        error: error.message,
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Failed to update profile",
