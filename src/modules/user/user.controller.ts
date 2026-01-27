@@ -33,6 +33,8 @@ const updateProfile = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    console.log(req.body);
+
     const { nama, jenis_kelamin, tanggal_lahir, foto_profil, no_telepon, asal_sekolah } = req.body;
 
     const updateData: any = {
