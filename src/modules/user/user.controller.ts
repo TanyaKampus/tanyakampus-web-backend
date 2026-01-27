@@ -1,5 +1,7 @@
+import cloudinary from "../../config/cloudinary";
 import userService from "./user.service";
 import { Request, Response } from "express";
+
 
 const getProfile = async (req: Request, res: Response) => {
   try {
@@ -28,28 +30,39 @@ const getProfile = async (req: Request, res: Response) => {
 const updateProfile = async (req: Request, res: Response) => {
   try {
     const user_id = (req as any).user?.user_id;
-    if (!user_id) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!user_id) return res.status(401).json({ message: "Unauthorized" });
+
+    const { nama, jenis_kelamin, tanggal_lahir, no_telepon, asal_sekolah } =
+      req.body;
+
+    let fotoUrl: string | undefined;
+
+    if (req.file) {
+
+      const uploadToCloudinary = (fileBuffer: Buffer) => {
+        return new Promise<string>((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "profile_pics" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result?.secure_url!);
+            },
+          );
+          stream.end(fileBuffer);
+        });
+      };
+
+      fotoUrl = await uploadToCloudinary(req.file.buffer);
     }
 
-    // field text dari FormData
-    const { nama, jenis_kelamin, tanggal_lahir, no_telepon, asal_sekolah } = req.body;
-
-    // file dari FormData
-    const foto_profil = req.file ? req.file.filename : undefined;
-
-    const updateData: any = {
-      ...(nama && { nama }),
-      ...(jenis_kelamin && { jenis_kelamin }),
-      ...(tanggal_lahir && !isNaN(new Date(tanggal_lahir).getTime()) && {
-        tanggal_lahir: new Date(tanggal_lahir),
-      }),
-      ...(no_telepon && { no_telepon }),
-      ...(asal_sekolah && { asal_sekolah }),
-      ...(foto_profil && { foto_profil }),
-    };
-
-    const updatedProfile = await userService.updateProfile(user_id, updateData);
+    const updatedProfile = await userService.updateProfile(user_id, {
+      nama,
+      jenis_kelamin,
+      ...(tanggal_lahir && { tanggal_lahir: new Date(tanggal_lahir) }), 
+      no_telepon,
+      asal_sekolah,
+      ...(fotoUrl && { foto_profil: fotoUrl }), 
+    });
 
     return res.status(200).json({
       success: true,
@@ -64,6 +77,7 @@ const updateProfile = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 export default {
   getProfile,
