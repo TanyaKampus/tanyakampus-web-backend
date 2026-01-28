@@ -136,6 +136,7 @@ model FavoriteKampus {
 model Bidang {
   bidang_id    String   @id @default(uuid())
   nama_bidang  String   @unique
+  foto_bidang  String?   
   deskripsi    String?  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
