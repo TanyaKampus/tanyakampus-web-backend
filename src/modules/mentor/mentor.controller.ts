@@ -4,7 +4,7 @@ import mentorService from "./mentor.service";
 
 const createMentor = async (req: Request, res: Response) => {
   try {
-    const { nama_mentor, pendidikan, keahlian, foto_mentor } = req.body;
+    const { nama_mentor, pendidikan, keahlian, foto_mentor, logo_kampus } = req.body;
 
     // Validation
     if (!nama_mentor || !pendidikan || !keahlian) {
@@ -18,6 +18,7 @@ const createMentor = async (req: Request, res: Response) => {
       nama_mentor,
       pendidikan,
       keahlian,
+      logo_kampus,
       foto_mentor,
     });
 

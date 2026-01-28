@@ -5,6 +5,7 @@ const createMentor = async (data: {
   nama_mentor: string;
   pendidikan: string;
   keahlian: string;
+  logo_kampus: string;
   foto_mentor?: string | null;
 }) => {
   return await prisma.mentor.create({
@@ -12,6 +13,7 @@ const createMentor = async (data: {
       nama_mentor: data.nama_mentor,
       pendidikan: data.pendidikan,
       keahlian: data.keahlian,
+      logo_kampus: data.logo_kampus,
       foto_mentor: data.foto_mentor ?? null,
     },
   });

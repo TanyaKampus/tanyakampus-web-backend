@@ -27,35 +27,67 @@ const getCampusById = async (kampus_id: string) => {
   };
 };
 
-
-
-
-const getAllCampus = async () => {
-  return prisma.kampus.findMany({
+const getAllCampus = async (page: number, limit: number) => {
+  const skip = (page - 1) * limit;
+  const campusList = await prisma.kampus.findMany({
+    skip,
+    take: limit,
     select: {
       kampus_id: true,
       nama_kampus: true,
       jenis_kampus: true,
+      logo_kampus: true,
+      akreditasi: true,
+      alamat_kampus: true,
+      maps_url: true,
+      instagram: true,
+      website: true,
+      no_telepon: true,
       deskripsi_kampus: true,
       foto_kampus: true,
     },
   });
+  const total = await prisma.kampus.count();
+  return {
+    data: campusList,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPrevPage: page > 1,
+    },
+  };
 };
 
 const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
+  logo_kampus: string;
   deskripsi_kampus?: string;
+  akreditasi?: string;
+  maps_url: string;
+  instagram: string;
+  website: string;
+  no_telepon: string;
+  alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids?: string[];
 }) => {
-  // Prepare data untuk Prisma
   const campusData: any = {
     nama_kampus: data.nama_kampus,
     jenis_kampus: data.jenis_kampus,
   };
 
-  // Hanya tambahkan field jika ada value
+  if (data.akreditasi !== undefined) {
+    campusData.akreditasi = data.akreditasi;
+  }
+
+  if (data.alamat_kampus !== undefined) {
+    campusData.alamat_kampus = data.alamat_kampus;
+  }
+
   if (data.deskripsi_kampus !== undefined) {
     campusData.deskripsi_kampus = data.deskripsi_kampus;
   }
@@ -64,7 +96,6 @@ const createCampus = async (data: {
     campusData.foto_kampus = data.foto_kampus;
   }
 
-  // Tambahkan relasi jurusan jika ada
   if (data.jurusan_ids && data.jurusan_ids.length > 0) {
     campusData.jurusanKampus = {
       create: data.jurusan_ids.map((jurusan_id) => ({
@@ -90,7 +121,6 @@ const createCampus = async (data: {
     },
   });
 
-  // Transform response
   const { jurusanKampus, ...rest } = campus;
   return {
     ...rest,
@@ -103,16 +133,15 @@ const updateCampus = async (kampus_id: string, data: any) => {
     where: {
       kampus_id,
     },
-    data
-  })
-}
+    data,
+  });
+};
 
-const deleteCampus = async(kampus_id: string) => {
+const deleteCampus = async (kampus_id: string) => {
   return prisma.kampus.delete({
-    where: {kampus_id}
-  })
-}
-
+    where: { kampus_id },
+  });
+};
 
 export default {
   getAllCampus,

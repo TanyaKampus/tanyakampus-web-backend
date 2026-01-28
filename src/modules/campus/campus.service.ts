@@ -1,13 +1,8 @@
 import campusRepository from "./campus.repository";
 import majorRepository from "../major/major.repository";
-import { log } from "console";
 
-const getAllCampus = async () => {
-  const campusList = await campusRepository.getAllCampus();
-
-  if (!campusList) throw new Error("Campus not found");
-
-  return campusList;
+const getAllCampus = async (page: number, limit: number) => {
+  return await campusRepository.getAllCampus(page, limit);
 };
 
 const getCampusById = async (kampus_id: string) => {
@@ -22,24 +17,30 @@ const createCampus = async (data: {
   nama_kampus: string;
   jenis_kampus: string;
   deskripsi_kampus?: string;
+  logo_kampus: string;
+  akreditasi?: string;
+  maps_url: string;
+  instagram: string;
+  website: string;
+  no_telepon: string;
+  alamat_kampus?: string;
   foto_kampus?: string;
   jurusan_ids: string[];
 }) => {
+  if (!data.nama_kampus?.trim()) {
+    throw new Error("Campus name is required");
+  }
 
-   if (!data.nama_kampus?.trim()) {
-     throw new Error("Campus name is required");
-   }
-
-   if (!data.jenis_kampus?.trim()) {
-     throw new Error("Campus type is required");
-   }
+  if (!data.jenis_kampus?.trim()) {
+    throw new Error("Campus type is required");
+  }
 
   // Validasi jurusan jika ada
   if (data.jurusan_ids && data.jurusan_ids.length > 0) {
-    const majorsExist = await majorRepository.findManyMajorsById(data.jurusan_ids);
-   
-    // console.log(majorsExist);
-    
+    const majorsExist = await majorRepository.findManyMajorsById(
+      data.jurusan_ids,
+    );
+
     if (majorsExist.length !== data.jurusan_ids.length) {
       throw new Error("Some majors not found");
     }
@@ -54,11 +55,13 @@ const createCampus = async (data: {
 const updateCampus = async (
   kampus_id: string,
   data: {
-    nama_kampus: string; 
+    nama_kampus: string;
     jenis_kampus: string;
     deskripsi_kampus: string;
+    akreditasi?: string;
+    alamat_kampus?: string;
     foto_kampus?: string;
-  }
+  },
 ) => {
   if (!data) throw new Error("Data campus not found");
 

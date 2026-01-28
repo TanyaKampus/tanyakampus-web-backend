@@ -29,7 +29,7 @@ const googleCallback = async (req: Request, res: Response) => {
     res.redirect(`https://tanyakampus.vercel.app/`); 
   } catch (error: any) {
     res.status(500).json({
-      message: "Failed to login with google,",
+      message: "Failed to login with google",
       error: error.message,
     });
   }

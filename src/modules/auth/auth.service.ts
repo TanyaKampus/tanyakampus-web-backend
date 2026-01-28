@@ -76,7 +76,6 @@ const register = async (data: {
       asal_sekolah: data.asal_sekolah,
       no_telepon: data.no_telepon,
       jenis_kelamin: data.jenis_kelamin,
-
     },
 
     refreshToken,

@@ -4,6 +4,7 @@ import mentorRepository from "./mentor.repository";
 const createMentor = async (data: {
   nama_mentor: string;
   pendidikan: string;
+  logo_kampus: string;
   keahlian: string;
   foto_mentor?: string;
 }) => {
