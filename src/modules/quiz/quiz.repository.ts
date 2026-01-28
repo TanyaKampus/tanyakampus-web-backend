@@ -396,3 +396,4 @@ export default {
   saveCampusResults,
 };
 
+console.log("test");
