@@ -35,7 +35,6 @@ const findAllQuestion = async (quiz_id: string) => {
         select: {
           jawaban_id: true,
           tipe_jawaban: true,
-
         }
       }
     },
@@ -49,7 +48,6 @@ const findQuestionByType = async (quiz_id: string, tipe: TipePertanyaan) => {
       tipe,
     },
     orderBy: { urutan: "asc" },
-
     include: {
       jawaban: {
         orderBy: { tipe_jawaban: "desc" }, 
@@ -105,28 +103,78 @@ const submitAnswer = async (
   });
 };
 
+// ✅ UPDATED: Now includes connected data (majors with campuses, campuses with majors)
 const findHistoryById = async (riwayat_id: string) => {
-
   return await prisma.riwayatQuiz.findUnique({
     where: { riwayat_id },
     include: {
-      hasilJurusan: {
+      quiz: {
         select: {
+          quiz_id: true,
+          nama_quiz: true
+        }
+      },
+      
+      // Field Results
+      hasilBidang: {
+        include: {
+          bidang: true
+        },
+        orderBy: {
+          skor_total: "desc"
+        }
+      },
+      
+      // Major Results (WITH campus info)
+      hasilJurusan: {
+        include: {
           jurusan: {
-            select: {
-              jurusan_id: true,
-              nama_jurusan: true,
+            include: {
+              bidang: {
+                select: {
+                  bidang_id: true,
+                  nama_bidang: true
+                }
+              },
+              jurusanKampus: {
+                include: {
+                  kampus: {
+                    select: {
+                      kampus_id: true,
+                      nama_kampus: true
+                    }
+                  }
+                }
+              }
             }
           }
         }
       },
+      
+      // Campus Results (WITH their recommended majors)
       hasilKampus: {
-
-        select: {
+        include: {
           kampus: {
-            select: {
-              kampus_id: true,
-              nama_kampus: true
+            include: {
+              jurusanKampus: {
+                where: {
+                  jurusan: {
+                    hasilJurusan: {
+                      some: {
+                        riwayat_id: riwayat_id
+                      }
+                    }
+                  }
+                },
+                include: {
+                  jurusan: {
+                    select: {
+                      jurusan_id: true,
+                      nama_jurusan: true
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -182,7 +230,6 @@ const findHistoryId = async (riwayat_id: string) => {
             },
           },
         },
-
       },
     },
   });
@@ -203,8 +250,6 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
     },
   });
 };
-
-
 
 const updateRiwayatStatus = async (
   riwayatId: string,
@@ -369,7 +414,6 @@ const findCampusByJurusan = async (jurusanIds: string[]) => {
   });
 };
 
-
 const submitAnswersBatch = async (
   riwayat_id: string,
   answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
@@ -397,6 +441,13 @@ const submitAnswersBatch = async (
   );
 };
 
+// ✅ NEW: Count existing major recommendations
+const countHasilJurusan = async (riwayat_id: string) => {
+  return await prisma.hasilJurusan.count({
+    where: { riwayat_id }
+  });
+};
+
 export default {
   submitAnswersBatch,
   findActiveQuiz,
@@ -420,5 +471,5 @@ export default {
   findBidangById,
   findJurusanByBidang,
   findCampusByJurusan,
+  countHasilJurusan, // ✅ NEW
 };
-

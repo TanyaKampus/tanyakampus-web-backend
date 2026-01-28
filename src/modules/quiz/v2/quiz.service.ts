@@ -1,3 +1,4 @@
+// src/services/quiz.service.ts
 import { StatusQuiz, TipePertanyaan } from "@prisma/client";
 import quizRepository from "./quiz.repository";
 
@@ -105,12 +106,6 @@ const countAnswersByHistory = async (
 };
 
 // ==================== SCORING ====================
-type BidangGabungan =
-  | "TEKNIK_DAN_KOMPUTER"
-  | "BISNIS_DAN_EKONOMI"
-  | "SOSIAL_DAN_POLITIK"
-  | "DESAIN_DAN_SENI";
-
 type SkorBidang = {
   bidang_id: string;
   nama_bidang: string;
@@ -119,7 +114,7 @@ type SkorBidang = {
   skor_total: number;
 };
 
-//  FIX 1: Dynamic bidang loading
+// ✅ UPDATED: Return formatted results with winner info
 const calculateAndSaveFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id)
     throw new Error("History ID is required to calculate field results");
@@ -157,7 +152,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     };
   });
 
-  //  CEK TIE AWAL (sebelum tiebreaker)
+  // Check initial tie (before tiebreaker)
   const maxSkor = Math.max(...scoresWithMain.map((s) => s.skor_main));
   const winners = scoresWithMain.filter((s) => s.skor_main === maxSkor);
   const initialTie = winners.length > 1;
@@ -169,20 +164,20 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
       (ju) => ju.pertanyaan.tipe === TipePertanyaan.TIE_BREAKER
     );
 
-   const tiebreakerMapping = {
-     EKSTROVERT_INTROVERT: {
-       yes: ["Bisnis dan Ekonomi", "Ilmu Sosial dan Politik"], 
-       no: ["Teknik dan Ilmu Komputer", "Desain dan Seni"], 
-     },
-     LOGIS_INTUISI: {
-       yes: ["Teknik dan Ilmu Komputer", "Bisnis dan Ekonomi"], 
-       no: ["Ilmu Sosial dan Politik", "Desain dan Seni"], 
-     },
-     TERSTRUKTUR_BEBAS: {
-       yes: ["Teknik dan Ilmu Komputer"],
-       no: ["Ilmu Sosial dan Politik", "Bisnis dan Ekonomi", "Desain dan Seni"], 
-     },
-   };
+    const tiebreakerMapping = {
+      EKSTROVERT_INTROVERT: {
+        yes: ["Bisnis dan Ekonomi", "Ilmu Sosial dan Politik"], 
+        no: ["Teknik dan Ilmu Komputer", "Desain dan Seni"], 
+      },
+      LOGIS_INTUISI: {
+        yes: ["Teknik dan Ilmu Komputer", "Bisnis dan Ekonomi"], 
+        no: ["Ilmu Sosial dan Politik", "Desain dan Seni"], 
+      },
+      TERSTRUKTUR_BEBAS: {
+        yes: ["Teknik dan Ilmu Komputer"],
+        no: ["Ilmu Sosial dan Politik", "Bisnis dan Ekonomi", "Desain dan Seni"], 
+      },
+    };
 
     finalScores = tiebreakerAnswers.reduce((acc, ja) => {
       const kategori = ja.pertanyaan.tiebreaker_type;
@@ -203,13 +198,13 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     }, scoresWithMain);
   }
 
-  // hitung total skorrboskuu
+  // Calculate total scores
   const scoresWithTotal = finalScores.map((score) => ({
     ...score,
     skor_total: score.skor_main + score.skor_tiebreaker,
   }));
 
-  //  CEK TIE AKHIR (setelah tiebreaker)
+  // Check final tie (after tiebreaker)
   const maxTotal = Math.max(...scoresWithTotal.map((s) => s.skor_total));
   const finalWinners = scoresWithTotal.filter((s) => s.skor_total === maxTotal);
   const finalTie = finalWinners.length > 1;
@@ -225,7 +220,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
   }));
 
   // Save results
-  const saved = await Promise.all(
+  await Promise.all(
     hasil.map((skor: any) =>
       quizRepository.saveHasilBidang({
         riwayat_id: riwayat_id,
@@ -239,49 +234,99 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     )
   );
 
-  // 👇 FIX: Return berdasarkan final tie, bukan initial tie
+  // ✅ Return formatted results with winner info
   return {
-    hasTie: finalTie, // ✅ Gunakan finalTie
-    needsTiebreaker: finalTie && !history.used_tiebreaker, // ✅ Cek final tie
-    data: saved,
+    hasTie: finalTie,
+    needsTiebreaker: finalTie && !history.used_tiebreaker,
+    results: hasil.map(h => ({
+      bidang_id: h.bidang_id,
+      nama_bidang: h.nama_bidang,
+      skor_bidang: h.skor_main,
+      skor_tiebreaker: h.skor_tiebreaker,
+      skor_total: h.skor_total,
+      persentase: h.persentase,
+      is_winner: h.is_winner
+    })),
+    winner: finalTie ? null : hasil.find(h => h.is_winner)
   };
 };
 
-//  NEW: Get field results
 const getFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to get field results");
   return await quizRepository.getHasilBidang(riwayat_id);
 };
 
 // ==================== TIEBREAKER ====================
-//  NEW: Set tiebreaker used
 const setUsedTiebreaker = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to set tiebreaker");
   return await quizRepository.setUsedTieBreaker(riwayat_id);
 };
 
 // ==================== COMPLETE QUIZ ====================
+// ✅ UPDATED: Auto-generate recommendations when completing quiz
 const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
   if (!riwayat_id) throw new Error("History ID is required to complete quiz");
- let finalBidang = bidangTerpilih;
+  
+  // 1️⃣ Validate quiz has been calculated
+  const hasilBidang = await quizRepository.getHasilBidang(riwayat_id);
+  
+  if (!hasilBidang || hasilBidang.length === 0) {
+    throw new Error("Please calculate field scores first by calling POST /history/:riwayat_id/calculate");
+  }
+  
+  // 2️⃣ Determine final bidang
+  let finalBidang = bidangTerpilih;
 
- if (!finalBidang) {
-   // Get hasil bidang
-   const hasilBidang = await quizRepository.getHasilBidang(riwayat_id);
+  if (!finalBidang) {
+    // Auto-select winner
+    const winner = hasilBidang.find((h) => h.is_winner);
+    if (winner) {
+      finalBidang = winner.bidang_id;
+    }
+  }
 
-   // Find winner
-   const winner = hasilBidang.find((h) => h.is_winner);
+  if (!finalBidang) {
+    throw new Error("Cannot complete quiz: No winning field determined");
+  }
 
-   if (winner) {
-     finalBidang = winner.bidang_id; // 👈 Auto-set winner
-   }
- }
+  // 3️⃣ Check if recommendations already exist
+  const existingMajorsCount = await quizRepository.countHasilJurusan(riwayat_id);
 
- return await quizRepository.updateRiwayatStatus(
-   riwayat_id,
-   StatusQuiz.COMPLETED,
-   finalBidang
- );
+  // 4️⃣ Auto-generate recommendations if not exist
+  if (existingMajorsCount === 0) {
+    console.log(`[completeQuiz] Auto-generating recommendations for riwayat: ${riwayat_id}`);
+    
+    try {
+      // Generate majors
+      const majorsResult = await calculateAndSaveMajorResults(riwayat_id, finalBidang);
+      console.log(`[completeQuiz] Generated ${majorsResult.length} majors`);
+      
+      // Get major IDs for campus generation
+      const majorIds = majorsResult.map(m => m.jurusan_id);
+      
+      if (majorIds.length > 0) {
+        // Generate campuses
+        const campusResult = await calculateAndSaveCampusResults(riwayat_id, majorIds);
+        console.log(`[completeQuiz] Generated ${campusResult.length} campuses`);
+      } else {
+        console.warn(`[completeQuiz] No majors found for bidang: ${finalBidang}`);
+      }
+    } catch (error) {
+      console.error('[completeQuiz] Error generating recommendations:', error);
+      throw new Error('Failed to generate recommendations: ' + (error as Error).message);
+    }
+  } else {
+    console.log(`[completeQuiz] Recommendations already exist (${existingMajorsCount} majors), skipping generation`);
+  }
+
+  // 5️⃣ Update status to COMPLETED
+  const result = await quizRepository.updateRiwayatStatus(
+    riwayat_id,
+    StatusQuiz.COMPLETED,
+    finalBidang
+  );
+
+  return result;
 };
 
 const abandonQuiz = async (riwayat_id: string) => {
@@ -293,14 +338,18 @@ const abandonQuiz = async (riwayat_id: string) => {
 };
 
 // ==================== RECOMMENDATIONS ====================
-// 👇 NEW: Calculate major results
 const calculateAndSaveMajorResults = async (riwayat_id: string, bidang_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to calculate major results");
   if (!bidang_id) throw new Error("Field ID is required to calculate major results");
   
   const jurusanList = await quizRepository.findJurusanByBidang(bidang_id);
   
-  const ranked = jurusanList.map((item, index) => ({
+  if (!jurusanList || jurusanList.length === 0) {
+    console.warn(`No majors found for bidang_id: ${bidang_id}`);
+    return [];
+  }
+  
+  const ranked = jurusanList.map((item) => ({
     riwayat_id: riwayat_id,
     jurusan_id: item.jurusan_id,
   }));
@@ -308,14 +357,18 @@ const calculateAndSaveMajorResults = async (riwayat_id: string, bidang_id: strin
   return await Promise.all(ranked.map(data => quizRepository.saveHasilJurusan(data)));
 };
 
-// 👇 NEW: Calculate campus results
 const calculateAndSaveCampusResults = async (riwayat_id: string, jurusan_ids: string[]) => {
   if (!riwayat_id) throw new Error("History ID is required to calculate campus results");
   if (!jurusan_ids || jurusan_ids.length === 0) throw new Error("Major IDs cannot be empty");
   
   const kampusList = await quizRepository.findCampusByJurusan(jurusan_ids);
   
-  const ranked = kampusList.map((item, index) => ({
+  if (!kampusList || kampusList.length === 0) {
+    console.warn(`No campuses found for jurusan_ids: ${jurusan_ids.join(', ')}`);
+    return [];
+  }
+  
+  const ranked = kampusList.map((item) => ({
     riwayat_id: riwayat_id,
     kampus_id: item.kampus_id,
   }));
@@ -324,12 +377,10 @@ const calculateAndSaveCampusResults = async (riwayat_id: string, jurusan_ids: st
 };
 
 // ==================== FIELDS ====================
-//  NEW: Get all fields
 const getAllFields = async () => {
   return await quizRepository.findAllBidang();
 };
 
-//  NEW: Get field by ID
 const getFieldById = async (bidang_id: string) => {
   if (!bidang_id) throw new Error("Field ID is required");
   const bidang = await quizRepository.findBidangById(bidang_id);
@@ -337,12 +388,12 @@ const getFieldById = async (bidang_id: string) => {
   return bidang;
 };
 
-//  NEW: Get majors by field
 const getMajorsByField = async (bidang_id: string) => {
   if (!bidang_id) throw new Error("Field ID is required to get majors");
   return await quizRepository.findJurusanByBidang(bidang_id);
 };
 
+// ==================== BATCH SUBMIT ====================
 const submitAnswersBatch = async (
   user_id: string,
   riwayat_id: string,
@@ -403,21 +454,21 @@ export default {
   
   // Scoring
   calculateAndSaveFieldResults,
-  getFieldResults,             //  NEW
+  getFieldResults,
   
   // Tiebreaker
-  setUsedTiebreaker,           //  NEW
+  setUsedTiebreaker,
   
   // Complete
   completeQuiz,
   abandonQuiz,
   
   // Recommendations
-  calculateAndSaveMajorResults,    //  NEW
-  calculateAndSaveCampusResults,   // NEW
+  calculateAndSaveMajorResults,
+  calculateAndSaveCampusResults,
   
   // Fields
-  getAllFields,                //  NEW
-  getFieldById,                //  NEW
-  getMajorsByField,            //  NEW
+  getAllFields,
+  getFieldById,
+  getMajorsByField,
 };
