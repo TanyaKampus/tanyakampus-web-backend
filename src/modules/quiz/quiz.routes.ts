@@ -98,3 +98,4 @@ router.post(
 ); 
 
 export default router
+console.log("test");

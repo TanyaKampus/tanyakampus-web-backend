@@ -361,3 +361,4 @@ export default {
   calculateAndSaveCampusResults,
 }
 
+console.log("test");
