@@ -422,3 +422,4 @@ export default {
   findCampusByJurusan,
 };
 
+console.log("test");

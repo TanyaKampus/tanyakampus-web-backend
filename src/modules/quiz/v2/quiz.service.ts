@@ -421,3 +421,4 @@ export default {
   getFieldById,                //  NEW
   getMajorsByField,            //  NEW
 };
+console.log("test")

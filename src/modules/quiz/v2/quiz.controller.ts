@@ -656,3 +656,4 @@ export default {
   getFieldById,
   getMajorsByField,
 };
+console.log("test");

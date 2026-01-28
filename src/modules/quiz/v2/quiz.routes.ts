@@ -115,3 +115,4 @@ router.post(
   quizController.submitAnswersBatch
 );
 export default router;
+console.log("test");
