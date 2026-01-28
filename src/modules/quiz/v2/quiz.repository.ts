@@ -1,4 +1,3 @@
-// src/repositories/quiz.repository.ts
 import { PrismaClient, StatusQuiz, TipePertanyaan } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -35,7 +34,6 @@ const findAllQuestion = async (quiz_id: string) => {
         select: {
           jawaban_id: true,
           tipe_jawaban: true,
-
         }
       }
     },
@@ -49,7 +47,6 @@ const findQuestionByType = async (quiz_id: string, tipe: TipePertanyaan) => {
       tipe,
     },
     orderBy: { urutan: "asc" },
-
     include: {
       jawaban: {
         orderBy: { tipe_jawaban: "desc" }, 
@@ -106,27 +103,73 @@ const submitAnswer = async (
 };
 
 const findHistoryById = async (riwayat_id: string) => {
-
   return await prisma.riwayatQuiz.findUnique({
     where: { riwayat_id },
     include: {
-      hasilJurusan: {
+      quiz: {
         select: {
+          quiz_id: true,
+          nama_quiz: true
+        }
+      },
+      
+      hasilBidang: {
+        include: {
+          bidang: true
+        },
+        orderBy: {
+          skor_total: "desc"
+        }
+      },
+      
+      hasilJurusan: {
+        include: {
           jurusan: {
-            select: {
-              jurusan_id: true,
-              nama_jurusan: true,
+            include: {
+              bidang: {
+                select: {
+                  bidang_id: true,
+                  nama_bidang: true
+                }
+              },
+              jurusanKampus: {
+                include: {
+                  kampus: {
+                    select: {
+                      kampus_id: true,
+                      nama_kampus: true
+                    }
+                  }
+                }
+              }
             }
           }
         }
       },
+      
       hasilKampus: {
-
-        select: {
+        include: {
           kampus: {
-            select: {
-              kampus_id: true,
-              nama_kampus: true
+            include: {
+              jurusanKampus: {
+                where: {
+                  jurusan: {
+                    hasilJurusan: {
+                      some: {
+                        riwayat_id: riwayat_id
+                      }
+                    }
+                  }
+                },
+                include: {
+                  jurusan: {
+                    select: {
+                      jurusan_id: true,
+                      nama_jurusan: true
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -182,7 +225,6 @@ const findHistoryId = async (riwayat_id: string) => {
             },
           },
         },
-
       },
     },
   });
@@ -203,8 +245,6 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
     },
   });
 };
-
-
 
 const updateRiwayatStatus = async (
   riwayatId: string,
@@ -228,7 +268,6 @@ const setUsedTieBreaker = async (riwayatId: string) => {
     data: { used_tiebreaker: true },
   });
 };
-
 const countJawabanByRiwayat = async (
   riwayatId: string,
   tipe?: TipePertanyaan
@@ -244,7 +283,6 @@ const countJawabanByRiwayat = async (
     },
   });
 };
-
 const saveHasilBidang = async (data: {
   riwayat_id: string;
   bidang_id: string;
@@ -369,7 +407,6 @@ const findCampusByJurusan = async (jurusanIds: string[]) => {
   });
 };
 
-
 const submitAnswersBatch = async (
   riwayat_id: string,
   answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
@@ -397,6 +434,12 @@ const submitAnswersBatch = async (
   );
 };
 
+const countHasilJurusan = async (riwayat_id: string) => {
+  return await prisma.hasilJurusan.count({
+    where: { riwayat_id }
+  });
+};
+
 export default {
   submitAnswersBatch,
   findActiveQuiz,
@@ -420,6 +463,5 @@ export default {
   findBidangById,
   findJurusanByBidang,
   findCampusByJurusan,
+  countHasilJurusan, 
 };
-
-console.log("test");

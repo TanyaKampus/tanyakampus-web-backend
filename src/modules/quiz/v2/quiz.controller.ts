@@ -184,17 +184,65 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
 
     const history = await quizService.getHistoryById(riwayat_id);
 
-       if (history.user_id !== req.user?.user_id) {
+    if (history.user_id !== req.user?.user_id) {
       return res.status(403).json({
         success: false,
-        message: "You don't have permission to modify this quiz",
+        message: "You don't have permission to view this quiz",
       });
     }
 
+    // ✅ Format response dengan data yang connected
+    const response: any = {
+      riwayat_id: history.riwayat_id,
+      quiz: history.quiz,
+      user_id: history.user_id,
+      status: history.status_quiz,
+      tanggal_mulai: history.tanggal_mulai,
+      tanggal_selesai: history.tanggal_selesai,
+      bidang_terpilih: history.bidang_terpilih,
+    };
+
+    if (history.hasilBidang && history.hasilBidang.length > 0) {
+      response.field_results = history.hasilBidang.map(hb => ({
+        bidang_id: hb.bidang_id,
+        nama_bidang: hb.bidang?.nama_bidang,
+        skor_bidang: hb.skor_bidang,
+        skor_tiebreaker: hb.skor_tiebreaker,
+        skor_total: hb.skor_total,
+        persentase: hb.persentase,
+        is_winner: hb.is_winner
+      }));
+    }
+
+    if (history.hasilJurusan && history.hasilJurusan.length > 0) {
+      response.recommended_majors = history.hasilJurusan.map(hj => ({
+        jurusan_id: hj.jurusan.jurusan_id,
+        nama_jurusan: hj.jurusan.nama_jurusan,
+        bidang: hj.jurusan.bidang ? {
+          bidang_id: hj.jurusan.bidang.bidang_id,
+          nama_bidang: hj.jurusan.bidang.nama_bidang
+        } : null,
+        available_in: hj.jurusan.jurusanKampus?.map(jk => ({
+          kampus_id: jk.kampus.kampus_id,
+          nama_kampus: jk.kampus.nama_kampus
+        })) || []
+      }));
+    }
+
+    if (history.hasilKampus && history.hasilKampus.length > 0) {
+      response.recommended_campuses = history.hasilKampus.map(hk => ({
+        kampus_id: hk.kampus.kampus_id,
+        nama_kampus: hk.kampus.nama_kampus,
+        majors_in_this_campus: hk.kampus.jurusanKampus?.map(jk => ({
+          jurusan_id: jk.jurusan.jurusan_id,
+          nama_jurusan: jk.jurusan.nama_jurusan
+        })) || []
+      }));
+    }
     return res.status(200).json({
       success: true,
       message: "Quiz history retrieved successfully",
-      data: history,
+      data: response
     });
   } catch (error) {
     return res.status(500).json({
@@ -235,6 +283,7 @@ const submitAnswer = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {riwayat_id} = req.params;
     const { pertanyaan_id, jawaban_id } = req.body;
+    
     if (!riwayat_id || !pertanyaan_id || !jawaban_id) {
       return res.status(400).json({
         success: false,
@@ -283,7 +332,7 @@ const countAnswerByHistory = async (
 
     return res.status(200).json({
       success: true,
-      message: "Answer ",
+      message: "Answer count retrieved successfully",
       data: result,
     });
   } catch (error) {
@@ -337,7 +386,7 @@ const setUsedTieBreaker = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Major results calculated successfully",
+      message: "Tiebreaker flag set successfully",
       data: result,
     });
   } catch (error) {
@@ -345,7 +394,6 @@ const setUsedTieBreaker = async (req: Request, res: Response) => {
       success: false,
       message: (error as Error).message
     })
-
   }
 };
 
@@ -364,7 +412,7 @@ const completeQuiz = async (req: AuthenticatedRequest, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Quiz completed successfully",
+      message: "Quiz completed successfully with recommendations",
       data: result,
     });
   } catch (error) {
@@ -377,7 +425,7 @@ const completeQuiz = async (req: AuthenticatedRequest, res: Response) => {
 
 const abandonQuiz = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const riwayat_id = req.params.id;
+    const {riwayat_id} = req.params;
 
     if (!riwayat_id) {
       return res.status(400).json({
@@ -475,7 +523,8 @@ const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
 
     if (!riwayat_id) {
       return res.status(400).json({
-        message: "Missing history ID paramater",
+        success: false,
+        message: "Missing history ID parameter",
       });
     }
 
@@ -483,7 +532,7 @@ const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Field result succesfully retrieved",
+      message: "Field results retrieved successfully",
       data: result,
     });
   } catch (error) {
@@ -493,7 +542,6 @@ const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
-
 
 const getAllFields = async (
   req: Request,
@@ -543,7 +591,6 @@ const getFieldById = async (
      });
   }
 };
-
 
 const getMajorsByField = async (
   req: Request,
@@ -632,7 +679,6 @@ const submitAnswersBatch = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-
 export default {
   submitAnswersBatch,
   getActiveQuiz,
@@ -656,4 +702,3 @@ export default {
   getFieldById,
   getMajorsByField,
 };
-console.log("test");
