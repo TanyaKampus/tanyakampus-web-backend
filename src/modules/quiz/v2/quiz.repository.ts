@@ -28,14 +28,14 @@ const findAllQuestion = async (quiz_id: string) => {
   return await prisma.pertanyaan.findMany({
     where: { quiz_id },
     orderBy: { urutan: "asc" },
-    include:{
-      jawaban:{ 
-        orderBy:{tipe_jawaban:"desc"},
+    include: {
+      jawaban: {
+        orderBy: { tipe_jawaban: "desc" },
         select: {
           jawaban_id: true,
           tipe_jawaban: true,
-        }
-      }
+        },
+      },
     },
   });
 };
@@ -49,14 +49,14 @@ const findQuestionByType = async (quiz_id: string, tipe: TipePertanyaan) => {
     orderBy: { urutan: "asc" },
     include: {
       jawaban: {
-        orderBy: { tipe_jawaban: "desc" }, 
+        orderBy: { tipe_jawaban: "desc" },
         select: {
           jawaban_id: true,
           tipe_jawaban: true,
-          nilai: true, 
-        }
-      }
-    }
+          nilai: true,
+        },
+      },
+    },
   });
 };
 
@@ -81,7 +81,7 @@ const findQuestionById = async (pertanyaan_id: string) => {
 const submitAnswer = async (
   riwayat_id: string,
   pertanyaan_id: string,
-  jawaban_id: string
+  jawaban_id: string,
 ) => {
   return await prisma.jawabanUser.upsert({
     where: {
@@ -109,19 +109,19 @@ const findHistoryById = async (riwayat_id: string) => {
       quiz: {
         select: {
           quiz_id: true,
-          nama_quiz: true
-        }
+          nama_quiz: true,
+        },
       },
-      
+
       hasilBidang: {
         include: {
-          bidang: true
+          bidang: true,
         },
         orderBy: {
-          skor_total: "desc"
-        }
+          skor_total: "desc",
+        },
       },
-      
+
       hasilJurusan: {
         include: {
           jurusan: {
@@ -129,24 +129,24 @@ const findHistoryById = async (riwayat_id: string) => {
               bidang: {
                 select: {
                   bidang_id: true,
-                  nama_bidang: true
-                }
+                  nama_bidang: true,
+                },
               },
               jurusanKampus: {
                 include: {
                   kampus: {
                     select: {
                       kampus_id: true,
-                      nama_kampus: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      nama_kampus: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      
+
       hasilKampus: {
         include: {
           kampus: {
@@ -156,25 +156,25 @@ const findHistoryById = async (riwayat_id: string) => {
                   jurusan: {
                     hasilJurusan: {
                       some: {
-                        riwayat_id: riwayat_id
-                      }
-                    }
-                  }
+                        riwayat_id: riwayat_id,
+                      },
+                    },
+                  },
                 },
                 include: {
                   jurusan: {
                     select: {
                       jurusan_id: true,
-                      nama_jurusan: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                      nama_jurusan: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 };
 
@@ -240,7 +240,7 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
       status_quiz: true,
       tanggal_mulai: true,
       tanggal_selesai: true,
-      quiz: { select: { nama_quiz: true } },
+      quiz: { select: { nama_quiz: true, quiz_id: true } },
       bidang_terpilih: true,
     },
   });
@@ -249,7 +249,7 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
 const updateRiwayatStatus = async (
   riwayatId: string,
   status: StatusQuiz,
-  bidangTerpilih?: string
+  bidangTerpilih?: string,
 ) => {
   return await prisma.riwayatQuiz.update({
     where: { riwayat_id: riwayatId },
@@ -270,7 +270,7 @@ const setUsedTieBreaker = async (riwayatId: string) => {
 };
 const countJawabanByRiwayat = async (
   riwayatId: string,
-  tipe?: TipePertanyaan
+  tipe?: TipePertanyaan,
 ) => {
   return await prisma.jawabanUser.count({
     where: {
@@ -409,7 +409,7 @@ const findCampusByJurusan = async (jurusanIds: string[]) => {
 
 const submitAnswersBatch = async (
   riwayat_id: string,
-  answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
+  answers: Array<{ pertanyaan_id: string; jawaban_id: string }>,
 ) => {
   return await prisma.$transaction(
     answers.map(({ pertanyaan_id, jawaban_id }) =>
@@ -429,14 +429,14 @@ const submitAnswersBatch = async (
           pertanyaan_id,
           jawaban_id,
         },
-      })
-    )
+      }),
+    ),
   );
 };
 
 const countHasilJurusan = async (riwayat_id: string) => {
   return await prisma.hasilJurusan.count({
-    where: { riwayat_id }
+    where: { riwayat_id },
   });
 };
 
@@ -463,5 +463,5 @@ export default {
   findBidangById,
   findJurusanByBidang,
   findCampusByJurusan,
-  countHasilJurusan, 
+  countHasilJurusan,
 };
