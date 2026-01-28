@@ -1,4 +1,3 @@
-// src/services/quiz.service.ts
 import { StatusQuiz, TipePertanyaan } from "@prisma/client";
 import quizRepository from "./quiz.repository";
 
@@ -114,7 +113,6 @@ type SkorBidang = {
   skor_total: number;
 };
 
-// ✅ UPDATED: Return formatted results with winner info
 const calculateAndSaveFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id)
     throw new Error("History ID is required to calculate field results");
@@ -131,7 +129,6 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     skor_total: 0,
   }));
 
-  // Calculate main scores
   const mainAnswers = history.jawabanUsers.filter(
     (ju) => ju.pertanyaan.tipe === TipePertanyaan.BIDANG
   );
@@ -152,12 +149,10 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     };
   });
 
-  // Check initial tie (before tiebreaker)
   const maxSkor = Math.max(...scoresWithMain.map((s) => s.skor_main));
   const winners = scoresWithMain.filter((s) => s.skor_main === maxSkor);
   const initialTie = winners.length > 1;
 
-  // Apply tiebreaker if needed
   let finalScores = scoresWithMain;
   if (initialTie && history.used_tiebreaker) {
     const tiebreakerAnswers = history.jawabanUsers.filter(
@@ -198,18 +193,15 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     }, scoresWithMain);
   }
 
-  // Calculate total scores
   const scoresWithTotal = finalScores.map((score) => ({
     ...score,
     skor_total: score.skor_main + score.skor_tiebreaker,
   }));
 
-  // Check final tie (after tiebreaker)
   const maxTotal = Math.max(...scoresWithTotal.map((s) => s.skor_total));
   const finalWinners = scoresWithTotal.filter((s) => s.skor_total === maxTotal);
   const finalTie = finalWinners.length > 1;
 
-  // Calculate percentage
   const hasil = scoresWithTotal.map((score) => ({
     ...score,
     persentase:
@@ -219,7 +211,6 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     is_winner: score.skor_total === maxTotal,
   }));
 
-  // Save results
   await Promise.all(
     hasil.map((skor: any) =>
       quizRepository.saveHasilBidang({
@@ -234,7 +225,6 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
     )
   );
 
-  // ✅ Return formatted results with winner info
   return {
     hasTie: finalTie,
     needsTiebreaker: finalTie && !history.used_tiebreaker,
@@ -253,7 +243,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
 
 const getFieldResults = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to get field results");
-  return await quizRepository.getHasilBidang(riwayat_id);
+  return await quizRepository.findHistoryById(riwayat_id);
 };
 
 // ==================== TIEBREAKER ====================
@@ -274,11 +264,9 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
     throw new Error("Please calculate field scores first by calling POST /history/:riwayat_id/calculate");
   }
   
-  // 2️⃣ Determine final bidang
   let finalBidang = bidangTerpilih;
 
   if (!finalBidang) {
-    // Auto-select winner
     const winner = hasilBidang.find((h) => h.is_winner);
     if (winner) {
       finalBidang = winner.bidang_id;
@@ -289,23 +277,18 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
     throw new Error("Cannot complete quiz: No winning field determined");
   }
 
-  // 3️⃣ Check if recommendations already exist
   const existingMajorsCount = await quizRepository.countHasilJurusan(riwayat_id);
 
-  // 4️⃣ Auto-generate recommendations if not exist
   if (existingMajorsCount === 0) {
     console.log(`[completeQuiz] Auto-generating recommendations for riwayat: ${riwayat_id}`);
     
     try {
-      // Generate majors
       const majorsResult = await calculateAndSaveMajorResults(riwayat_id, finalBidang);
       console.log(`[completeQuiz] Generated ${majorsResult.length} majors`);
       
-      // Get major IDs for campus generation
       const majorIds = majorsResult.map(m => m.jurusan_id);
       
       if (majorIds.length > 0) {
-        // Generate campuses
         const campusResult = await calculateAndSaveCampusResults(riwayat_id, majorIds);
         console.log(`[completeQuiz] Generated ${campusResult.length} campuses`);
       } else {
@@ -319,7 +302,6 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
     console.log(`[completeQuiz] Recommendations already exist (${existingMajorsCount} majors), skipping generation`);
   }
 
-  // 5️⃣ Update status to COMPLETED
   const result = await quizRepository.updateRiwayatStatus(
     riwayat_id,
     StatusQuiz.COMPLETED,
@@ -399,7 +381,6 @@ const submitAnswersBatch = async (
   riwayat_id: string,
   answers: Array<{ pertanyaan_id: string; jawaban_id: string }>
 ) => {
-  // Validate history
   const history = await getHistoryById(riwayat_id);
   
   if (history.user_id !== user_id) {
@@ -410,7 +391,6 @@ const submitAnswersBatch = async (
     throw new Error("Cannot submit answers to a completed quiz");
   }
 
-  // Validate all questions belong to this quiz
   const questions = await getAllQuestions(history.quiz_id);
   const validQuestionIds = questions.map(q => q.pertanyaan_id);
   
@@ -422,7 +402,6 @@ const submitAnswersBatch = async (
     throw new Error("Some questions do not belong to this quiz");
   }
 
-  // Submit batch
   const result = await quizRepository.submitAnswersBatch(riwayat_id, answers);
   
   return {
@@ -434,40 +413,31 @@ const submitAnswersBatch = async (
 
 export default {
   submitAnswersBatch,
-  // Quiz
   getActiveQuiz,
   getQuizById,
   startQuiz,
   
-  // History
   getUserHistory,
   getHistoryById,
   
-  // Questions
   getAllQuestions,
   getQuestionsByType,
   getQuestionById,
   
-  // Answers
   submitAnswer,
   countAnswersByHistory,
   
-  // Scoring
   calculateAndSaveFieldResults,
   getFieldResults,
   
-  // Tiebreaker
   setUsedTiebreaker,
   
-  // Complete
   completeQuiz,
   abandonQuiz,
   
-  // Recommendations
   calculateAndSaveMajorResults,
   calculateAndSaveCampusResults,
   
-  // Fields
   getAllFields,
   getFieldById,
   getMajorsByField,

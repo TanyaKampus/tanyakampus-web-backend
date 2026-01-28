@@ -1,4 +1,3 @@
-// src/controllers/quiz.controller.ts
 import { Request, Response } from "express";
 import { TipePertanyaan } from "@prisma/client";
 
@@ -172,7 +171,6 @@ const getQuestionById = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// ✅ UPDATED: Format response with connected data
 const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {riwayat_id} = req.params;
@@ -204,7 +202,6 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
       bidang_terpilih: history.bidang_terpilih,
     };
 
-    // ✅ Add field results if exists
     if (history.hasilBidang && history.hasilBidang.length > 0) {
       response.field_results = history.hasilBidang.map(hb => ({
         bidang_id: hb.bidang_id,
@@ -217,7 +214,6 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
       }));
     }
 
-    // ✅ Add major recommendations if exists (WITH campus availability)
     if (history.hasilJurusan && history.hasilJurusan.length > 0) {
       response.recommended_majors = history.hasilJurusan.map(hj => ({
         jurusan_id: hj.jurusan.jurusan_id,
@@ -233,7 +229,6 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
       }));
     }
 
-    // ✅ Add campus recommendations if exists (WITH their majors)
     if (history.hasilKampus && history.hasilKampus.length > 0) {
       response.recommended_campuses = history.hasilKampus.map(hk => ({
         kampus_id: hk.kampus.kampus_id,
@@ -403,11 +398,9 @@ const setUsedTieBreaker = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ UPDATED: Now auto-generates recommendations
 const completeQuiz = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {riwayat_id} = req.params;
-    // const { bidang_terpilih } = req.body;
 
     if (!riwayat_id) {
       return res.status(400).json({

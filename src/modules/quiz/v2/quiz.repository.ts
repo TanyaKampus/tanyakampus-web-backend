@@ -1,4 +1,3 @@
-// src/repositories/quiz.repository.ts
 import { PrismaClient, StatusQuiz, TipePertanyaan } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -103,7 +102,6 @@ const submitAnswer = async (
   });
 };
 
-// ✅ UPDATED: Now includes connected data (majors with campuses, campuses with majors)
 const findHistoryById = async (riwayat_id: string) => {
   return await prisma.riwayatQuiz.findUnique({
     where: { riwayat_id },
@@ -115,7 +113,6 @@ const findHistoryById = async (riwayat_id: string) => {
         }
       },
       
-      // Field Results
       hasilBidang: {
         include: {
           bidang: true
@@ -125,7 +122,6 @@ const findHistoryById = async (riwayat_id: string) => {
         }
       },
       
-      // Major Results (WITH campus info)
       hasilJurusan: {
         include: {
           jurusan: {
@@ -151,7 +147,6 @@ const findHistoryById = async (riwayat_id: string) => {
         }
       },
       
-      // Campus Results (WITH their recommended majors)
       hasilKampus: {
         include: {
           kampus: {
@@ -441,7 +436,6 @@ const submitAnswersBatch = async (
   );
 };
 
-// ✅ NEW: Count existing major recommendations
 const countHasilJurusan = async (riwayat_id: string) => {
   return await prisma.hasilJurusan.count({
     where: { riwayat_id }
@@ -471,5 +465,5 @@ export default {
   findBidangById,
   findJurusanByBidang,
   findCampusByJurusan,
-  countHasilJurusan, // ✅ NEW
+  countHasilJurusan, 
 };

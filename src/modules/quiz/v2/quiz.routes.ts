@@ -106,7 +106,7 @@ router.post(
 router.get(
   "/history/:riwayat_id/results",
   authMiddleware.protectRoute,
-  quizController.getHistoryById
+  quizController.getFieldResults
 ); 
 
 // ==================== TIEBREAKER ROUTES ====================
