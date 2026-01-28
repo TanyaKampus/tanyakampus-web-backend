@@ -268,7 +268,6 @@ const setUsedTieBreaker = async (riwayatId: string) => {
     data: { used_tiebreaker: true },
   });
 };
-
 const countJawabanByRiwayat = async (
   riwayatId: string,
   tipe?: TipePertanyaan
@@ -284,7 +283,6 @@ const countJawabanByRiwayat = async (
     },
   });
 };
-
 const saveHasilBidang = async (data: {
   riwayat_id: string;
   bidang_id: string;

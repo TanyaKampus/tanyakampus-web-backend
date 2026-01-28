@@ -246,7 +246,7 @@ const getFieldResults = async (riwayat_id: string) => {
   return await quizRepository.findHistoryById(riwayat_id);
 };
 
-// ==================== TIEBREAKER ====================
+// ==================== TIEBREAKER ===================
 const setUsedTiebreaker = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to set tiebreaker");
   return await quizRepository.setUsedTieBreaker(riwayat_id);

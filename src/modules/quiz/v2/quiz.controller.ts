@@ -239,7 +239,6 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
         })) || []
       }));
     }
-
     return res.status(200).json({
       success: true,
       message: "Quiz history retrieved successfully",

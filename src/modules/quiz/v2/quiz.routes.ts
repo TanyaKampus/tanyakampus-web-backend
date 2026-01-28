@@ -20,7 +20,7 @@ router.get(
   quizController.getUserHistory
 );
 
-// Get active quiz
+// Get active qui
 router.get(
   "/active",
   authMiddleware.protectRoute,
