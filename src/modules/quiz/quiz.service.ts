@@ -281,14 +281,13 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
  let finalBidang = bidangTerpilih;
 
  if (!finalBidang) {
-   // Get hasil bidang
    const hasilBidang = await quizRepository.getFieldResults(riwayat_id);
 
-   // Find winner
+
    const winner = hasilBidang.find((h) => h.is_winner);
 
    if (winner) {
-     finalBidang = winner.bidang_id; // 👈 Auto-set winner
+     finalBidang = winner.bidang_id; 
    }
  }
 
@@ -361,4 +360,3 @@ export default {
   calculateAndSaveCampusResults,
 }
 
-console.log("test");

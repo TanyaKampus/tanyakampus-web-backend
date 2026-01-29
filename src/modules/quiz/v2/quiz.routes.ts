@@ -1,26 +1,19 @@
-// src/routes/quiz.routes.ts
 import express from "express";
 import quizController from "./quiz.controller";
 import authMiddleware from "../../../middleware/auth";
 
 const router = express.Router();
 
-// ==================== PUBLIC ROUTES ====================
-// Get all fields (bidang)
-router.get("/fields", quizController.getAllFields);
-router.get("/fields/:bidang_id", quizController.getFieldById);
-router.get("/fields/:bidang_id/majors", quizController.getMajorsByField);
-
 // ==================== AUTHENTICATED ROUTES ====================
 
-// Get user's quiz history
+// Get user quiz history
 router.get(
   "/history/me",
   authMiddleware.protectRoute,
   quizController.getUserHistory
 );
 
-// Get active qui
+// Get active quiz
 router.get(
   "/active",
   authMiddleware.protectRoute,
@@ -43,26 +36,12 @@ router.post(
 );
 
 // ==================== QUESTIONS ROUTES ====================
-// Get all questions for a quiz
-router.get(
-  "/:quiz_id/questions",
-  authMiddleware.protectRoute,
-  quizController.getAllQuestions
-);
-
 // Get questions by type (BIDANG or TIE_BREAKER)
 router.get(
   "/:quiz_id/questions/type",
   authMiddleware.protectRoute,
   quizController.getQuestionsByType
 ); 
-
-// Get single question by ID
-router.get(
-  "/questions/:question_id",
-  authMiddleware.protectRoute,
-  quizController.getQuestionById
-);
 
 // ==================== HISTORY ROUTES ====================
 // Get quiz history by ID (with results if completed)
@@ -118,7 +97,6 @@ router.put(
 ); 
 
 // ==================== COMPLETE/ABANDON ROUTES ====================
-// Complete quiz (auto-generates recommendations)
 router.put(
   "/history/:riwayat_id/complete",
   authMiddleware.protectRoute,
@@ -131,23 +109,5 @@ router.put(
   authMiddleware.protectRoute,
   quizController.abandonQuiz
 );
-
-// ==================== MANUAL RECOMMENDATIONS ROUTES ====================
-// These are optional - completeQuiz already auto-generates
-// But keeping them for flexibility
-
-// Manually generate major recommendations
-router.post(
-  "/history/:riwayat_id/majors",
-  authMiddleware.protectRoute,
-  quizController.calculateMajorResults
-); 
-
-// Manually generate campus recommendations
-router.post(
-  "/history/:riwayat_id/campus",
-  authMiddleware.protectRoute,
-  quizController.calculateCampusResults
-); 
 
 export default router;

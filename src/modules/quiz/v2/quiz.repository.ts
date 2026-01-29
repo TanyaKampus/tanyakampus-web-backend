@@ -125,24 +125,6 @@ const findHistoryById = async (riwayat_id: string) => {
       hasilJurusan: {
         include: {
           jurusan: {
-            include: {
-              bidang: {
-                select: {
-                  bidang_id: true,
-                  nama_bidang: true,
-                },
-              },
-              jurusanKampus: {
-                include: {
-                  kampus: {
-                    select: {
-                      kampus_id: true,
-                      nama_kampus: true,
-                    },
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -150,27 +132,6 @@ const findHistoryById = async (riwayat_id: string) => {
       hasilKampus: {
         include: {
           kampus: {
-            include: {
-              jurusanKampus: {
-                where: {
-                  jurusan: {
-                    hasilJurusan: {
-                      some: {
-                        riwayat_id: riwayat_id,
-                      },
-                    },
-                  },
-                },
-                include: {
-                  jurusan: {
-                    select: {
-                      jurusan_id: true,
-                      nama_jurusan: true,
-                    },
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -246,7 +207,7 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
   });
 };
 
-const updateRiwayatStatus = async (
+const updateHistoryStatus = async (
   riwayatId: string,
   status: StatusQuiz,
   bidangTerpilih?: string,
@@ -268,7 +229,7 @@ const setUsedTieBreaker = async (riwayatId: string) => {
     data: { used_tiebreaker: true },
   });
 };
-const countJawabanByRiwayat = async (
+const countAnswersByHistory = async (
   riwayatId: string,
   tipe?: TipePertanyaan,
 ) => {
@@ -283,7 +244,7 @@ const countJawabanByRiwayat = async (
     },
   });
 };
-const saveHasilBidang = async (data: {
+const saveFieldResults = async (data: {
   riwayat_id: string;
   bidang_id: string;
   skor_bidang: number;
@@ -310,7 +271,7 @@ const saveHasilBidang = async (data: {
   });
 };
 
-const getHasilBidang = async (riwayatId: string) => {
+const getFieldResults = async (riwayatId: string) => {
   return await prisma.hasilBidang.findMany({
     where: { riwayat_id: riwayatId },
     include: {
@@ -322,7 +283,7 @@ const getHasilBidang = async (riwayatId: string) => {
   });
 };
 
-const saveHasilJurusan = async (data: {
+const saveMajorResults = async (data: {
   riwayat_id: string;
   jurusan_id: string;
 }) => {
@@ -339,7 +300,7 @@ const saveHasilJurusan = async (data: {
   });
 };
 
-const saveHasilKampus = async (data: {
+const saveCampusResults = async (data: {
   riwayat_id: string;
   kampus_id: string;
 }) => {
@@ -356,19 +317,13 @@ const saveHasilKampus = async (data: {
   });
 };
 
-const findAllBidang = async () => {
+const findAllFields = async () => {
   return await prisma.bidang.findMany({
     orderBy: { nama_bidang: "asc" },
   });
 };
 
-const findBidangById = async (bidangId: string) => {
-  return await prisma.bidang.findUnique({
-    where: { bidang_id: bidangId },
-  });
-};
-
-const findJurusanByBidang = async (bidangId: string) => {
+const findMajorsByField = async (bidangId: string) => {
   return await prisma.jurusan.findMany({
     where: { bidang_id: bidangId },
     include: {
@@ -381,7 +336,7 @@ const findJurusanByBidang = async (bidangId: string) => {
   });
 };
 
-const findCampusByJurusan = async (jurusanIds: string[]) => {
+const findCampusByMajor = async (jurusanIds: string[]) => {
   return await prisma.kampus.findMany({
     where: {
       jurusanKampus: {
@@ -434,7 +389,7 @@ const submitAnswersBatch = async (
   );
 };
 
-const countHasilJurusan = async (riwayat_id: string) => {
+const countMajorResults = async (riwayat_id: string) => {
   return await prisma.hasilJurusan.count({
     where: { riwayat_id },
   });
@@ -452,16 +407,15 @@ export default {
   findHistoryId,
   findHistoryById,
   findUserHistory,
-  updateRiwayatStatus,
+  updateHistoryStatus,
   setUsedTieBreaker,
-  countJawabanByRiwayat,
-  saveHasilBidang,
-  getHasilBidang,
-  saveHasilJurusan,
-  saveHasilKampus,
-  findAllBidang,
-  findBidangById,
-  findJurusanByBidang,
-  findCampusByJurusan,
-  countHasilJurusan,
+  countAnswersByHistory,
+  saveFieldResults,
+  getFieldResults,
+  saveMajorResults,
+  saveCampusResults,
+  findAllFields,
+  findMajorsByField,
+  findCampusByMajor,
+  countMajorResults,
 };

@@ -585,4 +585,3 @@ export default {
   calculateCampusResults,
 };
 
-console.log("test");

@@ -101,7 +101,7 @@ const countAnswersByHistory = async (
   tipe?: TipePertanyaan
 ) => {
   if (!riwayat_id) throw new Error("History ID is required to count answers");
-  return await quizRepository.countJawabanByRiwayat(riwayat_id, tipe);
+  return await quizRepository.countAnswersByHistory(riwayat_id, tipe);
 };
 
 // ==================== SCORING ====================
@@ -119,7 +119,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
 
   const history = await getHistoryId(riwayat_id);
 
-  const allBidang = await quizRepository.findAllBidang();
+  const allBidang = await quizRepository.findAllFields();
 
   const scores: SkorBidang[] = allBidang.map((bidang) => ({
     bidang_id: bidang.bidang_id,
@@ -213,7 +213,7 @@ const calculateAndSaveFieldResults = async (riwayat_id: string) => {
 
   await Promise.all(
     hasil.map((skor: any) =>
-      quizRepository.saveHasilBidang({
+      quizRepository.saveFieldResults({
         riwayat_id: riwayat_id,
         bidang_id: skor.bidang_id,
         skor_bidang: skor.skor_main,
@@ -253,12 +253,10 @@ const setUsedTiebreaker = async (riwayat_id: string) => {
 };
 
 // ==================== COMPLETE QUIZ ====================
-// ✅ UPDATED: Auto-generate recommendations when completing quiz
 const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
   if (!riwayat_id) throw new Error("History ID is required to complete quiz");
   
-  // 1️⃣ Validate quiz has been calculated
-  const hasilBidang = await quizRepository.getHasilBidang(riwayat_id);
+  const hasilBidang = await quizRepository.getFieldResults(riwayat_id);
   
   if (!hasilBidang || hasilBidang.length === 0) {
     throw new Error("Please calculate field scores first by calling POST /history/:riwayat_id/calculate");
@@ -277,7 +275,7 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
     throw new Error("Cannot complete quiz: No winning field determined");
   }
 
-  const existingMajorsCount = await quizRepository.countHasilJurusan(riwayat_id);
+  const existingMajorsCount = await quizRepository.countMajorResults(riwayat_id);
 
   if (existingMajorsCount === 0) {
     console.log(`[completeQuiz] Auto-generating recommendations for riwayat: ${riwayat_id}`);
@@ -302,7 +300,7 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
     console.log(`[completeQuiz] Recommendations already exist (${existingMajorsCount} majors), skipping generation`);
   }
 
-  const result = await quizRepository.updateRiwayatStatus(
+  const result = await quizRepository.updateHistoryStatus(
     riwayat_id,
     StatusQuiz.COMPLETED,
     finalBidang
@@ -313,7 +311,7 @@ const completeQuiz = async (riwayat_id: string, bidangTerpilih?: string) => {
 
 const abandonQuiz = async (riwayat_id: string) => {
   if (!riwayat_id) throw new Error("History ID is required to abandon quiz");
-  return await quizRepository.updateRiwayatStatus(
+  return await quizRepository.updateHistoryStatus(
     riwayat_id,
     StatusQuiz.ABANDONED
   );
@@ -324,7 +322,7 @@ const calculateAndSaveMajorResults = async (riwayat_id: string, bidang_id: strin
   if (!riwayat_id) throw new Error("History ID is required to calculate major results");
   if (!bidang_id) throw new Error("Field ID is required to calculate major results");
   
-  const jurusanList = await quizRepository.findJurusanByBidang(bidang_id);
+  const jurusanList = await quizRepository.findMajorsByField(bidang_id);
   
   if (!jurusanList || jurusanList.length === 0) {
     console.warn(`No majors found for bidang_id: ${bidang_id}`);
@@ -336,14 +334,14 @@ const calculateAndSaveMajorResults = async (riwayat_id: string, bidang_id: strin
     jurusan_id: item.jurusan_id,
   }));
   
-  return await Promise.all(ranked.map(data => quizRepository.saveHasilJurusan(data)));
+  return await Promise.all(ranked.map(data => quizRepository.saveMajorResults(data)));
 };
 
 const calculateAndSaveCampusResults = async (riwayat_id: string, jurusan_ids: string[]) => {
   if (!riwayat_id) throw new Error("History ID is required to calculate campus results");
   if (!jurusan_ids || jurusan_ids.length === 0) throw new Error("Major IDs cannot be empty");
   
-  const kampusList = await quizRepository.findCampusByJurusan(jurusan_ids);
+  const kampusList = await quizRepository.findCampusByMajor(jurusan_ids);
   
   if (!kampusList || kampusList.length === 0) {
     console.warn(`No campuses found for jurusan_ids: ${jurusan_ids.join(', ')}`);
@@ -355,24 +353,7 @@ const calculateAndSaveCampusResults = async (riwayat_id: string, jurusan_ids: st
     kampus_id: item.kampus_id,
   }));
   
-  return await Promise.all(ranked.map(data => quizRepository.saveHasilKampus(data)));
-};
-
-// ==================== FIELDS ====================
-const getAllFields = async () => {
-  return await quizRepository.findAllBidang();
-};
-
-const getFieldById = async (bidang_id: string) => {
-  if (!bidang_id) throw new Error("Field ID is required");
-  const bidang = await quizRepository.findBidangById(bidang_id);
-  if (!bidang) throw new Error("Field not found");
-  return bidang;
-};
-
-const getMajorsByField = async (bidang_id: string) => {
-  if (!bidang_id) throw new Error("Field ID is required to get majors");
-  return await quizRepository.findJurusanByBidang(bidang_id);
+  return await Promise.all(ranked.map(data => quizRepository.saveCampusResults(data)));
 };
 
 // ==================== BATCH SUBMIT ====================
@@ -437,8 +418,4 @@ export default {
   
   calculateAndSaveMajorResults,
   calculateAndSaveCampusResults,
-  
-  getAllFields,
-  getFieldById,
-  getMajorsByField,
-};
+  };

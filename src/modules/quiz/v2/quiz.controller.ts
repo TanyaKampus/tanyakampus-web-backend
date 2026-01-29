@@ -82,31 +82,6 @@ const startQuiz = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-const getAllQuestions = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const {quiz_id} = req.params;
-
-    if (!quiz_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing quiz ID parameter",
-      });
-    }
-
-    const questions = await quizService.getAllQuestions(quiz_id);
-
-    return res.status(200).json({
-      success: true,
-      message: "Questions retrieved successfully",
-      data: questions,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: (error as Error).message,
-    });
-  }
-};
 
 const getQuestionsByType = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -145,35 +120,9 @@ const getQuestionsByType = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-const getQuestionById = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const {question_id} = req.params;
-
-    if (!question_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing question ID parameter",
-      });
-    }
-
-    const question = await quizService.getQuestionById(question_id);
-
-    return res.status(200).json({
-      success: true,
-      message: "Question retrieved successfully",
-      data: question,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: (error as Error).message,
-    });
-  }
-};
-
 const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const {riwayat_id} = req.params;
+    const { riwayat_id } = req.params;
 
     if (!riwayat_id) {
       return res.status(400).json({
@@ -191,58 +140,10 @@ const getHistoryById = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    // ✅ Format response dengan data yang connected
-    const response: any = {
-      riwayat_id: history.riwayat_id,
-      quiz: history.quiz,
-      user_id: history.user_id,
-      status: history.status_quiz,
-      tanggal_mulai: history.tanggal_mulai,
-      tanggal_selesai: history.tanggal_selesai,
-      bidang_terpilih: history.bidang_terpilih,
-    };
-
-    if (history.hasilBidang && history.hasilBidang.length > 0) {
-      response.field_results = history.hasilBidang.map(hb => ({
-        bidang_id: hb.bidang_id,
-        nama_bidang: hb.bidang?.nama_bidang,
-        skor_bidang: hb.skor_bidang,
-        skor_tiebreaker: hb.skor_tiebreaker,
-        skor_total: hb.skor_total,
-        persentase: hb.persentase,
-        is_winner: hb.is_winner
-      }));
-    }
-
-    if (history.hasilJurusan && history.hasilJurusan.length > 0) {
-      response.recommended_majors = history.hasilJurusan.map(hj => ({
-        jurusan_id: hj.jurusan.jurusan_id,
-        nama_jurusan: hj.jurusan.nama_jurusan,
-        bidang: hj.jurusan.bidang ? {
-          bidang_id: hj.jurusan.bidang.bidang_id,
-          nama_bidang: hj.jurusan.bidang.nama_bidang
-        } : null,
-        available_in: hj.jurusan.jurusanKampus?.map(jk => ({
-          kampus_id: jk.kampus.kampus_id,
-          nama_kampus: jk.kampus.nama_kampus
-        })) || []
-      }));
-    }
-
-    if (history.hasilKampus && history.hasilKampus.length > 0) {
-      response.recommended_campuses = history.hasilKampus.map(hk => ({
-        kampus_id: hk.kampus.kampus_id,
-        nama_kampus: hk.kampus.nama_kampus,
-        majors_in_this_campus: hk.kampus.jurusanKampus?.map(jk => ({
-          jurusan_id: jk.jurusan.jurusan_id,
-          nama_jurusan: jk.jurusan.nama_jurusan
-        })) || []
-      }));
-    }
     return res.status(200).json({
       success: true,
       message: "Quiz history retrieved successfully",
-      data: response
+      data: history,
     });
   } catch (error) {
     return res.status(500).json({
@@ -449,73 +350,6 @@ const abandonQuiz = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-const calculateMajorResults = async (req: AuthenticatedRequest, res:Response) => {
-  try {
-    const { riwayat_id } = req.params
-    const { bidang_id } = req.body
-
-    if(!bidang_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing field ID parameter"
-      })
-    }
-
-    if(!riwayat_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing history ID parameter"
-      })
-    }
-
-    const result = await quizService.calculateAndSaveMajorResults(riwayat_id, bidang_id)
-
-    return res.status(200).json({
-      success: true,
-      message: "Major results calculated successfully",
-      data: result
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: (error as Error).message
-    })
-  }
-}
-
-const calculateCampusResults = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { riwayat_id } = req.params;
-    const { jurusan_ids } = req.body;
-
-    if (!jurusan_ids || !Array.isArray(jurusan_ids) || jurusan_ids.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "jurusan_ids must be a non-empty array",
-      });
-    }
-
-    if (!riwayat_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing history ID parameter",
-      });
-    }
-
-    const result = await quizService.calculateAndSaveCampusResults(riwayat_id, jurusan_ids);
-
-    return res.status(200).json({
-      success: true,
-      message: "Campus results calculated successfully",
-      data: result,
-    });
-  } catch (error) {
-     return res.status(500).json({
-       success: false,
-       message: (error as Error).message,
-     });
-  }
-};
 
 const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -534,84 +368,6 @@ const getFieldResults = async (req: AuthenticatedRequest, res: Response) => {
       success: true,
       message: "Field results retrieved successfully",
       data: result,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: (error as Error).message,
-    });
-  }
-};
-
-const getAllFields = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
-    const fields = await quizService.getAllFields();
-
-    res.status(200).json({
-      success: true,
-      message: "All fields retrieved successfully",
-      data: fields,
-    });
-  } catch (error) {
-     return res.status(500).json({
-       success: false,
-       message: (error as Error).message,
-     });
-  }
-};
-
-const getFieldById = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
-    const { bidang_id } = req.params;
-
-    if(!bidang_id){
-      return res.status(400).json({
-        success: false,
-        message: "Missing field ID parameter"
-      })
-    }
-
-    const field = await quizService.getFieldById(bidang_id);
-
-    res.status(200).json({
-      success: true,
-      message: "Field retrieved successfully",
-      data: field,
-    });
-  } catch (error) {
-     return res.status(500).json({
-       success: false,
-       message: (error as Error).message,
-     });
-  }
-};
-
-const getMajorsByField = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
-    const { bidang_id } = req.params;
-
-    if (!bidang_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing field ID parameter",
-      });
-    }
-
-    const majors = await quizService.getMajorsByField(bidang_id);
-
-    res.status(200).json({
-      success: true,
-      message: "Majors retrieved successfully",
-      data: majors,
     });
   } catch (error) {
     return res.status(500).json({
@@ -684,9 +440,7 @@ export default {
   getActiveQuiz,
   findQuizById,
   startQuiz,
-  getAllQuestions,
   getQuestionsByType,
-  getQuestionById,
   getUserHistory,
   getHistoryById,
   submitAnswer,
@@ -695,10 +449,5 @@ export default {
   setUsedTieBreaker,
   completeQuiz,
   abandonQuiz,
-  calculateMajorResults,
-  calculateCampusResults,
   getFieldResults,
-  getAllFields,
-  getFieldById,
-  getMajorsByField,
 };
