@@ -203,6 +203,11 @@ const findUserHistory = async (userId: string, limit: number = 10) => {
       tanggal_selesai: true,
       quiz: { select: { nama_quiz: true, quiz_id: true } },
       bidang_terpilih: true,
+       hasilKampus: {
+        include: {
+          kampus:true
+        },
+      },
     },
   });
 };
